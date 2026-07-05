@@ -423,19 +423,68 @@ function draw() {
     ctx.fillStyle = 'rgba(255,255,255,0.2)';
     ctx.font = '12px monospace';
     ctx.fillText(`👾 ${alive}`, 10, H - 15);
-    
-    // ===== ТЕСТ ТУРЕЛИ (КРАСНЫЙ КВАДРАТ) =====
-const turret = state.strategems.turret;
-ctx.fillStyle = '#ff0000';
-ctx.font = '20px monospace';
-ctx.fillText(`turret.active=${turret.active} x=${turret.x} y=${turret.y}`, 10, 100);
 
-if (turret.active) {
-    ctx.fillStyle = 'rgba(255,0,0,0.9)';
-    ctx.fillRect(turret.x - 30, turret.y - 30, 60, 60);
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '16px monospace';
-    ctx.fillText('ТУРЕЛЬ', turret.x - 25, turret.y + 5);
+    // ===== ТУРЕЛЬ (ПРАВИЛЬНАЯ ОТРИСОВКА С УЧЁТОМ КАМЕРЫ) =====
+const turret = state.strategems.turret;
+if (turret.active && turret.x && turret.y) {
+    const tx = turret.x;
+    const ty = turret.y;
+    
+    // Тень
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.beginPath();
+    ctx.arc(tx + 2, ty + 2, 14, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Основание
+    ctx.fillStyle = '#666688';
+    ctx.beginPath();
+    ctx.arc(tx, ty, 14, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#8899aa';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    
+    // Верхняя часть
+    ctx.fillStyle = '#ff8844';
+    ctx.shadowColor = '#ff8844';
+    ctx.shadowBlur = 15;
+    ctx.beginPath();
+    ctx.arc(tx, ty, 10, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    
+    // Ствол (смотрит в сторону угла)
+    ctx.save();
+    ctx.translate(tx, ty);
+    ctx.rotate(turret.angle || 0);
+    
+    ctx.fillStyle = '#aa6633';
+    ctx.fillRect(6, -3, 14, 6);
+    
+    // Дуло
+    ctx.fillStyle = '#ffaa44';
+    ctx.shadowColor = '#ffaa44';
+    ctx.shadowBlur = 10;
+    ctx.beginPath();
+    ctx.arc(18, 0, 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    
+    ctx.restore();
+    
+    // Полоска времени
+    const maxTimer = CONFIG.STRATEGEMS.turret.duration || 5;
+    const progress = (turret.timer && !isNaN(turret.timer)) ? Math.max(0, Math.min(1, turret.timer / maxTimer)) : 1;
+    const barWidth = 30;
+    const barHeight = 3;
+    const barX = tx - barWidth / 2;
+    const barY = ty - 20;
+    
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.fillRect(barX, barY, barWidth, barHeight);
+    ctx.fillStyle = progress > 0.3 ? '#44ff88' : '#ff4444';
+    ctx.fillRect(barX, barY, barWidth * progress, barHeight);
 }
 }
 
