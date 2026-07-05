@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HELLDIVERS: MIAMI</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="gameWrapper">
+    <canvas id="gameCanvas" width="800" height="600" tabindex="0"></canvas>
+    
+    <!-- ===== HUD ===== -->
+    <div id="hud">
+        <div class="hud-left">
+            <div class="hud-item">
+                <div class="label">Здоровье</div>
+                <div class="value" id="hudHealth">❤️❤️❤️❤️❤️</div>
+            </div>
+            <div class="hud-item">
+                <div class="label">Убийства</div>
+                <div class="value" id="hudKills">0</div>
+            </div>
+            <div class="hud-item">
+                <div class="label">Осталось</div>
+                <div class="value" id="hudRemaining">0</div>
+            </div>
+            <div class="hud-item">
+                <div class="label">Комбо</div>
+                <div class="value" id="hudCombo">x1</div>
+            </div>
+        </div>
+        <div class="hud-right">
+            <div class="hud-item">
+                <div class="label">Время</div>
+                <div class="value" id="hudTime">0с</div>
+            </div>
+            <div class="hud-item">
+                <div class="label">Кристаллы</div>
+                <div class="value gold" id="hudCrystals">💎 0</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ===== СТРАТЕГЕМЫ ===== -->
+    <div id="strategems">
+        <div class="strategem" id="strat1">
+            <span class="key">1</span>
+            <span class="icon">💥</span>
+            <span class="name">Авиаудар</span>
+            <span class="cooldown" id="cooldown1"></span>
+        </div>
+        <div class="strategem" id="strat2">
+            <span class="key">2</span>
+            <span class="icon">🛡️</span>
+            <span class="name">Щит</span>
+            <span class="cooldown" id="cooldown2"></span>
+        </div>
+        <div class="strategem" id="strat3">
+            <span class="key">3</span>
+            <span class="icon">🤖</span>
+            <span class="name">Турель</span>
+            <span class="cooldown" id="cooldown3"></span>
+        </div>
+        <div class="strategem" id="strat4">
+            <span class="key">4</span>
+            <span class="icon">❤️</span>
+            <span class="name">Аптечка</span>
+            <span class="cooldown" id="cooldown4"></span>
+        </div>
+    </div>
+    
+    <!-- ===== ДИСПЕТЧЕР ===== -->
+    <div id="dispatcher">🚀 Готов к высадке</div>
+    
+    <!-- ===== ПОДСКАЗКА ЭВАКУАЦИИ ===== -->
+    <div id="evacuationHint" style="
+        position: absolute;
+        bottom: 140px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0,255,0,0.15);
+        color: #44ff88;
+        padding: 8px 20px;
+        border-radius: 8px;
+        border: 2px solid #44ff88;
+        font-size: 18px;
+        font-weight: bold;
+        display: none;
+        z-index: 30;
+        pointer-events: none;
+        text-shadow: 0 0 20px rgba(68,255,136,0.3);
+    ">
+        🚀 Нажмите <kbd style="background:rgba(68,255,136,0.2);padding:2px 10px;border-radius:4px;">E</kbd> для эвакуации
+    </div>
+    
+    <!-- ===== УПРАВЛЕНИЕ ===== -->
+    <div id="controls">
+        <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> — движение &nbsp;·&nbsp;
+        <kbd>Shift</kbd> — рывок &nbsp;·&nbsp;
+        <kbd>ЛКМ</kbd> — стрельба &nbsp;·&nbsp;
+        <kbd>E</kbd> — эвакуация &nbsp;·&nbsp;
+        <kbd>R</kbd> — рестарт &nbsp;·&nbsp;
+        <kbd>1-4</kbd> — стратегемы
+    </div>
+    
+    <!-- ===== МЕНЮ ===== -->
+    <div id="menu">
+        <h1>🚀 HELLDIVERS: MIAMI</h1>
+        <p class="subtitle">"Добро пожаловать на передовую, боец."</p>
+        
+        <div class="daily-info">
+            <div>🌍 Планета: <span id="planetName">Крикус-7</span></div>
+            <div>👾 Врагов: <span id="enemyCount">10</span></div>
+            <div>🎯 Цель: Уничтожить всех</div>
+        </div>
+        
+        <div class="resources">
+            <span>💎 <span id="menuCrystals">0</span></span>
+            <span>💠 <span id="menuShards">0</span></span>
+            <span>🎫 <span id="menuTokens">0</span></span>
+        </div>
+        
+        <button id="startBtn">🚀 ВЫСАДКА НА ПЛАНЕТУ</button>
+        
+        <p class="footer">"Помни, боец: смерть — это не поражение, это перезагрузка."</p>
+    </div>
+    
+    <!-- ===== ЭКРАН СМЕРТИ ===== -->
+    <div id="deathScreen">
+        <h1>💀 ВЫ УМЕРЛИ</h1>
+        <div class="death-stats">
+            <div>Убийств: <span id="deathKills">0</span></div>
+            <div>Время: <span id="deathTime">0с</span></div>
+        </div>
+        <button id="restartBtn">[ R ] — ПЕРЕЗАГРУЗКА</button>
+        <p class="death-quote">"Смерть — это просто перезагрузка, боец."</p>
+    </div>
+    
+    <!-- ===== ЭКРАН РЕЗУЛЬТАТОВ ===== -->
+    <div id="results">
+        <h1>🏆 ЗАБЕГ ЗАВЕРШЁН</h1>
+        <div class="result-stats">
+            <div>Убийств: <span id="resultKills">0</span></div>
+            <div>Время: <span id="resultTime">0с</span></div>
+            <div>Кристаллы: 💎 <span id="resultCrystals">0</span></div>
+            <div>Счет: <span id="resultScore">0</span></div>
+        </div>
+        <button id="resultsBtn">📊 В МЕНЮ</button>
+    </div>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/state.js"></script>
+<script src="js/input.js"></script>
+<script src="js/map.js"></script>
+<script src="js/entities.js"></script>
+<script src="js/strategems.js"></script>
+<script src="js/combat.js"></script>
+<script src="js/progression.js"></script>
+<script src="js/daily.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/wave.js"></script>
+<script src="js/game.js"></script>
+<script src="js/init.js"></script>
+</body>
+</html>
