@@ -34,8 +34,8 @@ const CONFIG = {
     // === СТРАТЕГЕМЫ ===
     STRATEGEMS: {
         airstrike: { cooldown: 8, cost: 0 },
-        shield: { cooldown: 4, cost: 0 },
-        turret: { cooldown: 12, cost: 0 },
+        shield: { cooldown: 4, cost: 0, duration: 2 },
+        turret: { cooldown: 12, cost: 0, duration: 10 },
         medkit: { cooldown: 6, cost: 0 }
     },
     

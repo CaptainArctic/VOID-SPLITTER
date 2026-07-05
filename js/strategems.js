@@ -94,6 +94,8 @@ function useStrategem(type) {
             s.timer = CONFIG.STRATEGEMS.turret.duration;
             s.x = p.x + Math.cos(p.angle) * 40;
             s.y = p.y + Math.sin(p.angle) * 40;
+            s.angle = p.angle; // ← ЗАПОМИНАЕМ НАЧАЛЬНЫЙ УГОЛ
+            s._shootTimer = 0;
             
             // Визуальный эффект установки
             spawnParticles(s.x, s.y, '#ffaa44', 20, 150);
@@ -207,6 +209,9 @@ function updateTurret(dt) {
     const t = state.strategems.turret;
     if (!t.active) return;
     
+    // Вращаем турель (для анимации)
+    t.angle = (t.angle || 0) + dt * 1.5;
+    
     // Найти ближайшего врага
     let nearest = null;
     let minDist = Infinity;
@@ -222,7 +227,7 @@ function updateTurret(dt) {
     });
     
     if (nearest && minDist < 350) {
-        // Стреляем в врага каждые 0.3 секунды
+        // Стреляем обычными пулями (как у игрока)
         if (!t._shootTimer) t._shootTimer = 0;
         t._shootTimer -= dt;
         
@@ -231,29 +236,29 @@ function updateTurret(dt) {
             const dy = nearest.y - t.y;
             const len = Math.sqrt(dx*dx + dy*dy);
             if (len > 0) {
+                // ⭐ ОБЫЧНАЯ ПУЛЯ, А НЕ ЛАЗЕР
                 state.bullets.push({
-                    x: t.x + (dx/len) * 16,
-                    y: t.y + (dy/len) * 16,
+                    x: t.x + (dx/len) * 18,
+                    y: t.y + (dy/len) * 18,
                     vx: (dx/len) * 450,
                     vy: (dy/len) * 450,
                     radius: 4,
-                    damage: 30,
+                    damage: 25,
                     life: 1.5,
                     trail: [],
                     owner: 'turret',
-                    color: '#ffaa44'
+                    color: '#ff8844'
                 });
-                spawnParticles(t.x + (dx/len) * 18, t.y + (dy/len) * 18, '#ffaa44', 3, 80);
-                t._shootTimer = 0.3;
+                // Эффект выстрела (маленькая вспышка)
+                spawnParticles(t.x + (dx/len) * 20, t.y + (dy/len) * 20, '#ffaa44', 4, 80);
+                t._shootTimer = 0.25;
             }
         }
     } else {
         t._shootTimer = 0;
     }
-    
-    // Визуальный эффект турели (вращение)
-    t.angle = (t.angle || 0) + dt * 2;
 }
+
 
 // ============================================================
 //  ТРЯСКА КАМЕРЫ (ЭФФЕКТ АВИАУДАРА)

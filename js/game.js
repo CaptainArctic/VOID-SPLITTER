@@ -227,11 +227,11 @@ function draw() {
     ctx.save();
     ctx.translate(-camera.x, -camera.y);
 
-    // Земля
+    // ===== ЗЕМЛЯ =====
     ctx.fillStyle = CONFIG.COLORS.ground || '#1a1a2e';
     ctx.fillRect(0, 0, mapWidth, mapHeight);
 
-    // Дороги
+    // ===== ДОРОГИ =====
     ctx.fillStyle = CONFIG.COLORS.road || '#2a2a4e';
     for (let y = 0; y < mapHeight; y += 120) {
         ctx.fillRect(0, y, mapWidth, 8);
@@ -240,7 +240,7 @@ function draw() {
         ctx.fillRect(x, 0, 8, mapHeight);
     }
 
-    // Здания
+    // ===== ЗДАНИЯ =====
     if (typeof map !== 'undefined' && map.buildings) {
         for (const b of map.buildings) {
             ctx.fillStyle = 'rgba(0,0,0,0.3)';
@@ -253,7 +253,7 @@ function draw() {
         }
     }
 
-    // Частицы
+    // ===== ЧАСТИЦЫ =====
     state.particles.forEach(p => {
         const alpha = p.life / p.maxLife;
         ctx.globalAlpha = alpha;
@@ -264,7 +264,7 @@ function draw() {
     });
     ctx.globalAlpha = 1;
 
-    // Враги
+    // ===== ВРАГИ =====
     state.enemies.forEach(e => {
         if (e.dead) return;
 
@@ -315,38 +315,35 @@ function draw() {
     });
 
     // ===== ПУЛИ =====
-state.bullets.forEach(b => {
-    // След
-    b.trail.forEach((t, i) => {
-        const alpha = i / b.trail.length * 0.5;
-        ctx.globalAlpha = alpha;
-        const trailColor = b.color || '#00ccff';
-        ctx.fillStyle = trailColor;
+    state.bullets.forEach(b => {
+        b.trail.forEach((t, i) => {
+            const alpha = i / b.trail.length * 0.5;
+            ctx.globalAlpha = alpha;
+            const trailColor = b.color || '#00ccff';
+            ctx.fillStyle = trailColor;
+            ctx.beginPath();
+            ctx.arc(t.x, t.y, b.radius * (i / b.trail.length), 0, Math.PI * 2);
+            ctx.fill();
+        });
+        ctx.globalAlpha = 1;
+
+        const bulletColor = b.color || '#00ccff';
+        const grad = ctx.createRadialGradient(b.x - 2, b.y - 2, 1, b.x, b.y, b.radius);
+        grad.addColorStop(0, '#ffffff');
+        grad.addColorStop(0.5, bulletColor);
+        grad.addColorStop(1, bulletColor === '#ffaa44' ? '#884422' : '#004466');
+        ctx.fillStyle = grad;
         ctx.beginPath();
-        ctx.arc(t.x, t.y, b.radius * (i / b.trail.length), 0, Math.PI * 2);
+        ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
         ctx.fill();
+
+        ctx.shadowColor = bulletColor;
+        ctx.shadowBlur = 10;
+        ctx.fill();
+        ctx.shadowBlur = 0;
     });
-    ctx.globalAlpha = 1;
 
-    // Цвет пули (по умолчанию голубой, у турели — оранжевый)
-    const bulletColor = b.color || '#00ccff';
-    
-    const grad = ctx.createRadialGradient(b.x - 2, b.y - 2, 1, b.x, b.y, b.radius);
-    grad.addColorStop(0, '#ffffff');
-    grad.addColorStop(0.5, bulletColor);
-    grad.addColorStop(1, bulletColor === '#ffaa44' ? '#884422' : '#004466');
-    ctx.fillStyle = grad;
-    ctx.beginPath();
-    ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.shadowColor = bulletColor;
-    ctx.shadowBlur = 10;
-    ctx.fill();
-    ctx.shadowBlur = 0;
-});
-
-    // Игрок
+    // ===== ИГРОК =====
     const glow = ctx.createRadialGradient(p.x, p.y, 5, p.x, p.y, 60);
     glow.addColorStop(0, CONFIG.COLORS.playerGlow || 'rgba(0, 221, 255, 0.3)');
     glow.addColorStop(1, 'rgba(0,0,0,0)');
@@ -406,7 +403,8 @@ state.bullets.forEach(b => {
 
     ctx.restore();
 
-    // Прицел (поверх камеры)
+
+    // ===== ПРИЦЕЛ (поверх камеры) =====
     const mx = window.mouse.x;
     const my = window.mouse.y;
     ctx.strokeStyle = 'rgba(0, 204, 255, 0.4)';
@@ -425,6 +423,20 @@ state.bullets.forEach(b => {
     ctx.fillStyle = 'rgba(255,255,255,0.2)';
     ctx.font = '12px monospace';
     ctx.fillText(`👾 ${alive}`, 10, H - 15);
+    
+    // ===== ТЕСТ ТУРЕЛИ (КРАСНЫЙ КВАДРАТ) =====
+const turret = state.strategems.turret;
+ctx.fillStyle = '#ff0000';
+ctx.font = '20px monospace';
+ctx.fillText(`turret.active=${turret.active} x=${turret.x} y=${turret.y}`, 10, 100);
+
+if (turret.active) {
+    ctx.fillStyle = 'rgba(255,0,0,0.9)';
+    ctx.fillRect(turret.x - 30, turret.y - 30, 60, 60);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '16px monospace';
+    ctx.fillText('ТУРЕЛЬ', turret.x - 25, turret.y + 5);
+}
 }
 
 function dispatchMessage(msg) {
