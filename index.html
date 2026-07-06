@@ -30,6 +30,22 @@
                 <div class="label">Комбо</div>
                 <div class="value" id="hudCombo">x1</div>
             </div>
+            <div id="rocketIndicator" style="
+                position: absolute;
+                bottom: 120px;
+                right: 20px;
+                background: rgba(0,20,50,0.8);
+                border: 2px solid #ff8844;
+                border-radius: 8px;
+                padding: 8px 16px;
+                color: #ff8844;
+                font-size: 14px;
+                display: none;
+                z-index: 10;
+                backdrop-filter: blur(4px);
+                pointer-events: none;">
+                🚀 Ракетница [ЛКМ]
+            </div>
         </div>
         <div class="hud-right">
             <div class="hud-item">
@@ -45,31 +61,31 @@
     
     <!-- ===== СТРАТЕГЕМЫ ===== -->
     <div id="strategems">
-        <div class="strategem" id="strat1">
-            <span class="key">1</span>
-            <span class="icon">💥</span>
-            <span class="name">Авиаудар</span>
-            <span class="cooldown" id="cooldown1"></span>
-        </div>
-        <div class="strategem" id="strat2">
-            <span class="key">2</span>
-            <span class="icon">🛡️</span>
-            <span class="name">Щит</span>
-            <span class="cooldown" id="cooldown2"></span>
-        </div>
-        <div class="strategem" id="strat3">
-            <span class="key">3</span>
-            <span class="icon">🤖</span>
-            <span class="name">Турель</span>
-            <span class="cooldown" id="cooldown3"></span>
-        </div>
-        <div class="strategem" id="strat4">
-            <span class="key">4</span>
-            <span class="icon">❤️</span>
-            <span class="name">Аптечка</span>
-            <span class="cooldown" id="cooldown4"></span>
-        </div>
+    <div class="strategem" id="strat1">
+        <span class="key">1</span>
+        <span class="icon">💥</span>
+        <span class="name">Авиаудар</span>
+        <span class="cooldown" id="cooldown1"></span>
     </div>
+    <div class="strategem" id="strat2">
+        <span class="key">2</span>
+        <span class="icon">🤖</span>
+        <span class="name">Турель</span>
+        <span class="cooldown" id="cooldown2"></span>
+    </div>
+    <div class="strategem" id="strat3">
+        <span class="key">3</span>
+        <span class="icon">🚀</span>
+        <span class="name">Ракетница</span>
+        <span class="cooldown" id="cooldown3"></span>
+    </div>
+    <div class="strategem" id="strat4">
+    <span class="key">4</span>
+    <span class="icon">🔥</span>
+    <span class="name">Напалм</span>
+    <span class="cooldown" id="cooldown4"></span>
+    </div>
+</div>
     
     <!-- ===== ДИСПЕТЧЕР ===== -->
     <div id="dispatcher">🚀 Готов к высадке</div>

@@ -1,5 +1,5 @@
 // ============================================================
-//  strategems.js — Стратегемы (авиаудар, щит, турель, аптечка)
+//  strategems.js — Стратегемы (авиаудар, турель, ракетница)
 // ============================================================
 
 console.log('✅ strategems.js загружен');
@@ -37,17 +37,14 @@ function useStrategem(type) {
     const p = state.player;
 
     switch(type) {
-        case 'airstrike':
-            // Авиаудар по позиции мыши в МИРОВЫХ координатах
+        case 'airstrike': {
             const worldX = window.mouse.x + camera.x;
             const worldY = window.mouse.y + camera.y;
             
-            // Эффект удара
             spawnParticles(worldX, worldY, '#ff8800', 50, 500);
             spawnParticles(worldX, worldY, '#ffffff', 30, 300);
             spawnParticles(worldX, worldY, '#ff4400', 40, 400);
             
-            // Урон врагам в радиусе
             let hitCount = 0;
             state.enemies.forEach(e => {
                 if (e.dead) return;
@@ -68,56 +65,88 @@ function useStrategem(type) {
                 }
             });
             
-            // Тряска камеры
             if (typeof shakeCamera === 'function') shakeCamera(5);
-            
             dispatchMessage(`💥 Авиаудар! Уничтожено ${hitCount} врагов`);
             s.cooldown = CONFIG.STRATEGEMS.airstrike.cooldown;
             break;
+        }
             
-        case 'shield':
-            // Щит — неуязвимость
+        case 'rocket': {
+            const rocketTargetX = window.mouse.x + camera.x;
+            const rocketTargetY = window.mouse.y + camera.y;
+            
             s.active = true;
-            s.timer = CONFIG.STRATEGEMS.shield.duration;
-            state.player.invincible = true;
-            state.player.invincibleTimer = CONFIG.STRATEGEMS.shield.duration;
+            s.x = rocketTargetX;
+            s.y = rocketTargetY;
+            s.timer = CONFIG.STRATEGEMS.rocket.pickupTime || 10;
+            s.pickedUp = false;
+            s.fired = false;
+            s.angle = 0;
             
-            // Визуальный эффект щита (частицы)
-            spawnParticles(p.x, p.y, '#44ddff', 30, 200);
-            dispatchMessage('🛡️ Щит активирован!');
-            s.cooldown = CONFIG.STRATEGEMS.shield.cooldown;
+            spawnParticles(rocketTargetX, rocketTargetY - 30, '#ff8844', 40, 300);
+            spawnParticles(rocketTargetX, rocketTargetY - 30, '#ffcc44', 30, 200);
+            
+            dispatchMessage('🚀 Капсула с ракетницей падает! Подойдите и нажмите F');
+            s.cooldown = CONFIG.STRATEGEMS.rocket.cooldown;
             break;
-            
-        case 'turret':
-            // Турель — ставится рядом с игроком
+        }
+
+
+        case 'napalm': {
+    const wx = window.mouse.x + camera.x;
+    const wy = window.mouse.y + camera.y;
+    
+    const napalmConfig = CONFIG.STRATEGEMS.napalm; // ← ПОЛУЧАЕМ КОНФИГ
+    
+    s.active = true;
+    s.x = wx;
+    s.y = wy;
+    s.timer = napalmConfig.duration || 3;
+    s.radius = napalmConfig.radius || 120;
+    s.tickTimer = 0;
+    
+    // Эффект взрыва
+    spawnParticles(wx, wy, '#ff4400', 60, 500);
+    spawnParticles(wx, wy, '#ff8800', 40, 400);
+    spawnParticles(wx, wy, '#ffcc00', 30, 300);
+    spawnParticles(wx, wy, '#ffffff', 20, 200);
+    
+    // Кольцевая волна
+    for (let i = 0; i < 30; i++) {
+        const angle = (i / 30) * Math.PI * 2;
+        const dist = 20 + Math.random() * 60;
+        state.particles.push({
+            x: wx + Math.cos(angle) * dist,
+            y: wy + Math.sin(angle) * dist,
+            vx: Math.cos(angle) * (100 + Math.random() * 100),
+            vy: Math.sin(angle) * (100 + Math.random() * 100),
+            radius: 3 + Math.random() * 5,
+            color: ['#ff4400', '#ff6600', '#ff8800', '#ffcc00'][Math.floor(Math.random() * 4)],
+            life: 0.5 + Math.random() * 0.5,
+            maxLife: 0.5 + Math.random() * 0.5
+        });
+    }
+    
+    dispatchMessage('🔥 Напалм! Огненная зона активирована!');
+    s.cooldown = CONFIG.STRATEGEMS.napalm.cooldown;
+    break;
+}
+
+        case 'turret': {
             s.active = true;
             s.timer = CONFIG.STRATEGEMS.turret.duration;
             s.x = p.x + Math.cos(p.angle) * 40;
             s.y = p.y + Math.sin(p.angle) * 40;
-            s.angle = p.angle; // ← ЗАПОМИНАЕМ НАЧАЛЬНЫЙ УГОЛ
+            s.angle = p.angle;
             s._shootTimer = 0;
             
-            // Визуальный эффект установки
             spawnParticles(s.x, s.y, '#ffaa44', 20, 150);
             dispatchMessage('🤖 Турель развёрнута!');
             s.cooldown = CONFIG.STRATEGEMS.turret.cooldown;
             break;
-            
-        case 'medkit':
-            // Аптечка — восстанавливает HP
-            if (p.health >= p.maxHealth) {
-                dispatchMessage('❤️ Уже полное здоровье');
-                return;
-            }
-            p.health = Math.min(p.health + 1, p.maxHealth);
-            spawnParticles(p.x, p.y, '#ff44ff', 20, 150);
-            dispatchMessage('❤️ +1 HP');
-            updateHUD();
-            s.cooldown = CONFIG.STRATEGEMS.medkit.cooldown;
-            break;
+        }
     }
     
-    // Обновляем UI стратегем
     updateStrategemUI();
     updateHUD();
 }
@@ -127,8 +156,8 @@ function useStrategem(type) {
 // ============================================================
 
 function updateStrategemUI() {
-    const types = ['airstrike', 'shield', 'turret', 'medkit'];
-    const icons = ['💥', '🛡️', '🤖', '❤️'];
+    const types = ['airstrike', 'turret', 'rocket', 'napalm'];
+    const icons = ['💥', '🤖', '🚀'];
     
     types.forEach((type, i) => {
         const s = state.strategems[type];
@@ -136,17 +165,16 @@ function updateStrategemUI() {
         const stratEl = document.getElementById(`strat${i+1}`);
         
         if (cooldownEl) {
-            if (s.cooldown > 0) {
+            if (s && s.cooldown > 0) {
                 cooldownEl.textContent = Math.ceil(s.cooldown);
-                stratEl.classList.add('on-cooldown');
+                if (stratEl) stratEl.classList.add('on-cooldown');
             } else {
                 cooldownEl.textContent = '';
-                stratEl.classList.remove('on-cooldown');
+                if (stratEl) stratEl.classList.remove('on-cooldown');
             }
         }
         
-        // Индикатор активности (для щита и турели)
-        if (s.active && stratEl) {
+        if (s && s.active && stratEl) {
             stratEl.style.borderColor = '#44ff88';
             stratEl.style.boxShadow = '0 0 20px rgba(68,255,136,0.2)';
         } else if (stratEl) {
@@ -161,30 +189,17 @@ function updateStrategemUI() {
 // ============================================================
 
 function updateStrategemCooldowns(dt) {
-    const types = ['airstrike', 'shield', 'turret', 'medkit'];
+    const types = ['airstrike', 'turret', 'rocket', 'napalm'];
     types.forEach(type => {
         const s = state.strategems[type];
+        if (!s) return;
+        
         if (s.cooldown > 0) {
             s.cooldown -= dt;
             if (s.cooldown < 0) s.cooldown = 0;
         }
         
-        // Обработка активных стратегем
         if (s.active) {
-            if (type === 'shield') {
-                s.timer -= dt;
-                state.player.invincibleTimer = s.timer;
-                if (s.timer <= 0) {
-                    s.active = false;
-                    state.player.invincible = false;
-                    dispatchMessage('🛡️ Щит отключён');
-                    updateStrategemUI();
-                }
-                // Визуальный эффект щита (пульсация)
-                if (Math.random() < 0.2) {
-                    spawnParticles(state.player.x, state.player.y, '#44ddff', 2, 50);
-                }
-            }
             if (type === 'turret') {
                 s.timer -= dt;
                 if (s.timer <= 0) {
@@ -194,25 +209,27 @@ function updateStrategemCooldowns(dt) {
                     updateStrategemUI();
                 }
             }
+            if (type === 'rocket') {
+                // Ракетница обрабатывается в update() game.js
+                // Таймер капсулы обновляется там же
+            }
         }
     });
     
-    // Обновляем UI стратегем (кулдауны)
     updateStrategemUI();
 }
 
 // ============================================================
-//  ТУРЕЛЬ (стреляет по врагам)
+//  ТУРЕЛЬ
 // ============================================================
 
 function updateTurret(dt) {
     const t = state.strategems.turret;
-    if (!t.active) return;
+    if (!t || !t.active) return;
     
-    // Вращаем турель (для анимации)
+    // Вращаем турель
     t.angle = (t.angle || 0) + dt * 1.5;
     
-    // Найти ближайшего врага
     let nearest = null;
     let minDist = Infinity;
     state.enemies.forEach(e => {
@@ -227,7 +244,6 @@ function updateTurret(dt) {
     });
     
     if (nearest && minDist < 350) {
-        // Стреляем обычными пулями (как у игрока)
         if (!t._shootTimer) t._shootTimer = 0;
         t._shootTimer -= dt;
         
@@ -236,7 +252,6 @@ function updateTurret(dt) {
             const dy = nearest.y - t.y;
             const len = Math.sqrt(dx*dx + dy*dy);
             if (len > 0) {
-                // ⭐ ОБЫЧНАЯ ПУЛЯ, А НЕ ЛАЗЕР
                 state.bullets.push({
                     x: t.x + (dx/len) * 18,
                     y: t.y + (dy/len) * 18,
@@ -249,7 +264,6 @@ function updateTurret(dt) {
                     owner: 'turret',
                     color: '#ff8844'
                 });
-                // Эффект выстрела (маленькая вспышка)
                 spawnParticles(t.x + (dx/len) * 20, t.y + (dy/len) * 20, '#ffaa44', 4, 80);
                 t._shootTimer = 0.25;
             }
@@ -259,9 +273,8 @@ function updateTurret(dt) {
     }
 }
 
-
 // ============================================================
-//  ТРЯСКА КАМЕРЫ (ЭФФЕКТ АВИАУДАРА)
+//  ТРЯСКА КАМЕРЫ
 // ============================================================
 
 let shakeIntensity = 0;
@@ -272,10 +285,9 @@ function shakeCamera(intensity) {
     shakeTimer = 0.3;
 }
 
-// Вызывать в game.js в update, чтобы трясти камеру
 function applyCameraShake() {
     if (shakeTimer > 0) {
-        shakeTimer -= 0.016; // примерно 1 кадр
+        shakeTimer -= 0.016;
         const offsetX = (Math.random() - 0.5) * shakeIntensity * 2;
         const offsetY = (Math.random() - 0.5) * shakeIntensity * 2;
         camera.x += offsetX;

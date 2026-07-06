@@ -2,7 +2,7 @@ const CONFIG = {
     WIDTH: 800,
     HEIGHT: 600,
     
-    // === HOTLINE MIAMI ===
+    // === СТАТЫ ===
     MAX_HEALTH: 5,
     PLAYER_SPEED: 280,
     PLAYER_RADIUS: 12,
@@ -31,12 +31,35 @@ const CONFIG = {
     WAVE_SPAWN_INTERVAL: 500,
     WAVE_DELAY: 1500,
     
-    // === СТРАТЕГЕМЫ ===
+    // === ВСЕ ДОСТУПНЫЕ СТРАТЕГЕМЫ ===
+    ALL_STRATEGEMS: [
+        { id: 'airstrike', name: 'Авиаудар', icon: '💥', cooldown: 8, unlocked: true, description: 'Мощный удар с орбиты' },
+        { id: 'turret', name: 'Турель', icon: '🤖', cooldown: 12, unlocked: true, description: 'Автоматическая турель' },
+        { id: 'rocket', name: 'Ракетница', icon: '🚀', cooldown: 15, unlocked: true, description: 'Мощный выстрел (одноразовая)',
+          id: 'napalm', name: 'Напалм', icon: '🔥', cooldown: 10, unlocked: true, description: 'Взрыв + огонь по площади'
+         }
+    ],
+
+    DEFAULT_STRATEGEMS: ['airstrike', 'turret', 'rocket', 'napalm'],
+
     STRATEGEMS: {
-        airstrike: { cooldown: 8, cost: 0 },
-        shield: { cooldown: 4, cost: 0, duration: 2 },
-        turret: { cooldown: 12, cost: 0, duration: 10 },
-        medkit: { cooldown: 6, cost: 0 }
+        airstrike: { cooldown: 8, damage: 999, radius: 150 },
+        turret: { cooldown: 12, duration: 5 },
+        napalm: { 
+                cooldown: 10, 
+                damage: 20,       // Урон за тик
+                tickInterval: 0.5,
+                duration: 3,      // Сколько горит
+                radius: 120
+        },
+        rocket: { 
+            cooldown: 15,
+            damage: 999,
+            speed: 800,
+            pickupTime: 10,
+            fallDuration: 1.5
+        },
+        
     },
     
     // === КОМБО ===

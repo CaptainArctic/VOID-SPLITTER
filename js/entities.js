@@ -46,6 +46,53 @@ function shootBullet(targetX, targetY) {
     });
 }
 
+// ===== ВЫСТРЕЛ ИЗ РАКЕТНИЦЫ =====
+function fireRocket() {
+    const rocket = state.strategems.rocket;
+    if (!rocket.pickedUp || rocket.fired) return;
+    if (state.gameOver) return;
+    
+    const p = state.player;
+    const mx = window.mouse.x + camera.x;
+    const my = window.mouse.y + camera.y;
+    const dx = mx - p.x;
+    const dy = my - p.y;
+    const len = Math.sqrt(dx*dx + dy*dy);
+    if (len < 10) return;
+    
+    // Огромная пуля (ракета)
+    state.bullets.push({
+        x: p.x + Math.cos(p.angle) * 20,
+        y: p.y + Math.sin(p.angle) * 20,
+        vx: (dx / len) * 700,
+        vy: (dy / len) * 700,
+        radius: 8,
+        damage: 999,
+        life: 2.5,
+        trail: [],
+        owner: 'player',
+        color: '#ff8800',
+        isRocket: true
+    });
+    
+    // Эффект выстрела (большая вспышка)
+    spawnParticles(p.x + Math.cos(p.angle) * 25, p.y + Math.sin(p.angle) * 25, '#ff8800', 30, 300);
+    spawnParticles(p.x + Math.cos(p.angle) * 25, p.y + Math.sin(p.angle) * 25, '#ffcc44', 20, 200);
+    
+    // Ракетница исчезает
+    rocket.fired = true;
+    rocket.pickedUp = false;
+    rocket.active = false;
+
+      state.shootCooldown = 0;
+    
+    // Скрываем индикатор
+    const indicator = document.getElementById('rocketIndicator');
+    if (indicator) indicator.style.display = 'none';
+    
+    dispatchMessage('🚀 Ракета выпущена!');
+}
+
 function startDash() {
     const p = state.player;
     if (p.isDashing) return;

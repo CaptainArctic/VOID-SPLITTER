@@ -12,6 +12,30 @@ window.addEventListener('keydown', function(e) {
         return false;
     }
     
+        if (key === 'f')
+    {
+        e.preventDefault();
+        // Проверяем, есть ли рядом капсула с ракетницей
+        const rocket = state.strategems.rocket;
+        if (rocket.active && !rocket.pickedUp && !rocket.fired) {
+            const p = state.player;
+            const dx = p.x - rocket.x;
+            const dy = p.y - rocket.y;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            if (dist < 50) {
+                // Подбираем ракетницу
+                rocket.pickedUp = true;
+                rocket.carriedBy = 'player';
+                dispatchMessage('🚀 Ракетница подобрана! Нажмите ЛКМ для выстрела.');
+                // Показываем индикатор, что у игрока ракетница
+                document.getElementById('rocketIndicator').style.display = 'block';
+            } else {
+                dispatchMessage('⚠️ Подойдите ближе к капсуле!');
+            }
+        }
+        return false;
+    }
+    
     if (key === 'shift') {
         window.keys.shift = true;
         e.preventDefault();
@@ -32,9 +56,9 @@ window.addEventListener('keydown', function(e) {
     }
     
     if (key === '1') { e.preventDefault(); if (typeof useStrategem === 'function') useStrategem('airstrike'); }
-    if (key === '2') { e.preventDefault(); if (typeof useStrategem === 'function') useStrategem('shield'); }
-    if (key === '3') { e.preventDefault(); if (typeof useStrategem === 'function') useStrategem('turret'); }
-    if (key === '4') { e.preventDefault(); if (typeof useStrategem === 'function') useStrategem('medkit'); }
+if (key === '2') { e.preventDefault(); if (typeof useStrategem === 'function') useStrategem('turret'); }
+if (key === '3') { e.preventDefault(); if (typeof useStrategem === 'function') useStrategem('rocket'); }
+if (key === '4') { e.preventDefault(); if (typeof useStrategem === 'function') useStrategem('napalm'); }
 });
 
 window.addEventListener('keyup', function(e) {

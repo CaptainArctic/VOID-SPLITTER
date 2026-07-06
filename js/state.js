@@ -20,9 +20,9 @@ const state = {
     particles: [],
     strategems: {
         airstrike: { cooldown: 0, active: false },
-        shield: { cooldown: 0, active: false, timer: 0 },
         turret: { cooldown: 0, active: false, timer: 0, x: 0, y: 0 },
-        medkit: { cooldown: 0, active: false }
+        napalm: { cooldown: 0, active: false, timer: 0, x: 0, y: 0, radius: 120, tickTimer: 0 },
+        rocket: { cooldown: 0, active: false, pickedUp: false, fired: false, timer: 0, x: 0, y: 0, angle: 0 }
     },
     wave: 1,
     kills: 0,

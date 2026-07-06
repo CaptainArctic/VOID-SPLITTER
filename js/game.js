@@ -8,6 +8,7 @@ function update(dt) {
     if (state.levelComplete) return;
 
     const p = state.player;
+    const rocket = state.strategems.rocket; // ← ОДНО ОБЪЯВЛЕНИЕ
 
     // === ДВИЖЕНИЕ ===
     let dx = 0, dy = 0;
@@ -51,12 +52,20 @@ function update(dt) {
     camera.x = Math.max(0, Math.min(mapWidth - W, camera.x));
     camera.y = Math.max(0, Math.min(mapHeight - H, camera.y));
 
-    // === ПРИЦЕЛ В МИРОВЫХ КООРДИНАТАХ ===
+    // === ПРИЦЕЛ ===
     const worldMouseX = window.mouse.x + camera.x;
     const worldMouseY = window.mouse.y + camera.y;
     p.angle = Math.atan2(worldMouseY - p.y, worldMouseX - p.x);
 
-    // === СТРЕЛЬБА ===
+    // ===== РАКЕТНИЦА (ВЫСТРЕЛ) — ДО ОБЫЧНОЙ СТРЕЛЬБЫ =====
+    if (rocket.pickedUp && !rocket.fired && window.mouse.down) {
+         fireRocket();
+        if (!rocket.fired) {
+        state.shootCooldown = 999;
+    }
+    }
+
+    // === СТРЕЛЬБА (обычная) ===
     state.shootCooldown -= dt;
     if (window.mouse.down && state.shootCooldown <= 0 && !p.isDashing) {
         shootBullet(worldMouseX, worldMouseY);
@@ -74,6 +83,46 @@ function update(dt) {
     state.bullets = state.bullets.filter(b =>
         b.life > 0 && b.x > -50 && b.x < mapWidth + 50 && b.y > -50 && b.y < mapHeight + 50
     );
+
+    // ===== НАПАЛМ =====
+const napalm = state.strategems.napalm;
+if (napalm.active) {
+    napalm.timer -= dt;
+    napalm.tickTimer -= dt;
+    
+    // Урон по врагам в зоне
+    if (napalm.tickTimer <= 0) {
+        napalm.tickTimer = CONFIG.STRATEGEMS.napalm.tickInterval || 0.5;
+        state.enemies.forEach(e => {
+            if (e.dead) return;
+            const dx = e.x - napalm.x;
+            const dy = e.y - napalm.y;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            if (dist < napalm.radius) {
+                e.hp -= CONFIG.STRATEGEMS.napalm.damage || 20;
+                if (e.hp <= 0) {
+                    e.dead = true;
+                    state.kills++;
+                    state.crystals += 5 + Math.floor(Math.random() * 5);
+                    state.score += 10;
+                    explosionParticles(e.x, e.y, e.color);
+                    updateCombo();
+                    updateHUD();
+                }
+                // Эффект горения на враге
+                spawnParticles(e.x, e.y, '#ff4400', 3, 50);
+            }
+        });
+    }
+    
+    // Если время вышло — отключаем
+    if (napalm.timer <= 0) {
+        napalm.active = false;
+        // Финальная вспышка
+        spawnParticles(napalm.x, napalm.y, '#ff4400', 20, 200);
+        dispatchMessage('🔥 Огонь погас');
+    }
+}
 
     // === ВРАГИ ===
     state.enemies.forEach(e => {
@@ -186,7 +235,18 @@ function update(dt) {
 
     state.enemies = state.enemies.filter(e => !e.dead);
 
-    // === ТУРЕЛЬ (заглушка) ===
+    // === РАКЕТНИЦА (ЛОГИКА КАПСУЛЫ) — ПОСЛЕ ВСЕХ СТОЛКНОВЕНИЙ ===
+    if (rocket.active && rocket.x && rocket.y) {
+        if (!rocket.pickedUp && !rocket.fired) {
+            rocket.timer -= dt;
+            if (rocket.timer <= 0) {
+                rocket.active = false;
+                dispatchMessage('⏳ Капсула с ракетницей исчезла!');
+            }
+        }
+    }
+
+    // === ТУРЕЛЬ ===
     if (typeof updateTurret === 'function') updateTurret(dt);
     if (typeof updateStrategemCooldowns === 'function') updateStrategemCooldowns(dt);
     if (typeof updateComboTimer === 'function') updateComboTimer(dt);
@@ -209,9 +269,8 @@ function update(dt) {
     checkLevelComplete();
     if (typeof updateStatus === 'function') updateStatus();
 
-    // Тряска камеры (эффект авиаудара)
-    if (typeof applyCameraShake === 'function') 
-    {
+    // === ТРЯСКА КАМЕРЫ ===
+    if (typeof applyCameraShake === 'function') {
         applyCameraShake();
     }
 }
@@ -252,6 +311,65 @@ function draw() {
             ctx.strokeRect(b.x, b.y, b.w, b.h);
         }
     }
+
+    // ===== НАПАЛМ (огненная зона) =====
+const napalm = state.strategems.napalm;
+if (napalm.active) {
+    const nx = napalm.x;
+    const ny = napalm.y;
+    const radius = napalm.radius;
+    const progress = napalm.timer / (CONFIG.STRATEGEMS.napalm.duration || 3);
+    
+    // Внешнее свечение
+    const glow = ctx.createRadialGradient(nx, ny, 5, nx, ny, radius);
+    glow.addColorStop(0, `rgba(255, 200, 50, ${0.3 * progress})`);
+    glow.addColorStop(0.5, `rgba(255, 100, 0, ${0.2 * progress})`);
+    glow.addColorStop(1, 'rgba(255, 50, 0, 0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(nx, ny, radius, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Основная зона огня (с анимацией)
+    const segments = 20;
+    for (let i = 0; i < segments; i++) {
+        const angle = (i / segments) * Math.PI * 2 + Date.now() / 500;
+        const r = radius * (0.4 + 0.6 * (0.5 + 0.5 * Math.sin(angle * 2 + Date.now() / 300)));
+        const x = nx + Math.cos(angle) * r;
+        const y = ny + Math.sin(angle) * r;
+        const size = 8 + Math.random() * 15 * progress;
+        
+        ctx.globalAlpha = 0.6 * progress;
+        const colors = ['#ff4400', '#ff6600', '#ff8800', '#ffcc00'];
+        ctx.fillStyle = colors[Math.floor(Math.random() * colors.length)];
+        ctx.shadowColor = '#ff4400';
+        ctx.shadowBlur = 20;
+        ctx.beginPath();
+        ctx.arc(x, y, size * 0.5 + Math.random() * 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    }
+    ctx.globalAlpha = 1;
+    
+    // Граница зоны
+    ctx.strokeStyle = `rgba(255, 100, 0, ${0.3 * progress})`;
+    ctx.lineWidth = 3;
+    ctx.setLineDash([10, 10]);
+    ctx.beginPath();
+    ctx.arc(nx, ny, radius, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    
+    // Индикатор времени (прогресс-бар)
+    const barWidth = 40;
+    const barHeight = 4;
+    const barX = nx - barWidth / 2;
+    const barY = ny - radius - 15;
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.fillRect(barX, barY, barWidth, barHeight);
+    ctx.fillStyle = progress > 0.3 ? '#ff8844' : '#ff4444';
+    ctx.fillRect(barX, barY, barWidth * progress, barHeight);
+}
 
     // ===== ЧАСТИЦЫ =====
     state.particles.forEach(p => {
@@ -343,6 +461,126 @@ function draw() {
         ctx.shadowBlur = 0;
     });
 
+    // ===== РАКЕТНИЦА (капсула) =====
+    const rocket = state.strategems.rocket;
+    if (rocket.active && rocket.x && rocket.y && !rocket.pickedUp && !rocket.fired) {
+        const rx = rocket.x;
+        const ry = rocket.y;
+        const timeLeft = rocket.timer || 10;
+        
+        const glow = ctx.createRadialGradient(rx, ry, 2, rx, ry, 25);
+        glow.addColorStop(0, 'rgba(255, 136, 68, 0.3)');
+        glow.addColorStop(1, 'rgba(255, 136, 68, 0)');
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(rx, ry, 25, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.shadowColor = '#ff8844';
+        ctx.shadowBlur = 15;
+        
+        ctx.fillStyle = 'rgba(0,0,0,0.3)';
+        ctx.beginPath();
+        ctx.ellipse(rx + 2, ry + 4, 12, 6, 0, 0, Math.PI * 2);
+        ctx.fill();
+        
+        const grad = ctx.createRadialGradient(rx - 3, ry - 3, 2, rx, ry, 14);
+        grad.addColorStop(0, '#ffcc66');
+        grad.addColorStop(0.4, '#ff8844');
+        grad.addColorStop(1, '#884422');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.ellipse(rx, ry, 14, 10, 0, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.strokeStyle = 'rgba(255, 170, 68, 0.5)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.ellipse(rx, ry, 14, 10, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        
+        ctx.font = '18px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText('🚀', rx, ry + 1);
+        
+        const maxTime = CONFIG.STRATEGEMS.rocket.pickupTime || 10;
+        const progress = Math.max(0, timeLeft / maxTime);
+        const barWidth = 30;
+        const barHeight = 3;
+        const barX = rx - barWidth / 2;
+        const barY = ry - 18;
+        
+        ctx.fillStyle = 'rgba(0,0,0,0.5)';
+        ctx.fillRect(barX, barY, barWidth, barHeight);
+        ctx.fillStyle = progress > 0.3 ? '#44ff88' : '#ff4444';
+        ctx.fillRect(barX, barY, barWidth * progress, barHeight);
+        
+        ctx.fillStyle = 'rgba(255,255,255,0.4)';
+        ctx.font = '10px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('[F] Подобрать', rx, ry + 24);
+    }
+
+    // ===== ТУРЕЛЬ =====
+    const turret = state.strategems.turret;
+    if (turret.active && turret.x && turret.y) {
+        const tx = turret.x;
+        const ty = turret.y;
+        
+        ctx.fillStyle = 'rgba(0,0,0,0.3)';
+        ctx.beginPath();
+        ctx.arc(tx + 2, ty + 2, 14, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.fillStyle = '#666688';
+        ctx.beginPath();
+        ctx.arc(tx, ty, 14, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#8899aa';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        
+        ctx.fillStyle = '#ff8844';
+        ctx.shadowColor = '#ff8844';
+        ctx.shadowBlur = 15;
+        ctx.beginPath();
+        ctx.arc(tx, ty, 10, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        
+        ctx.save();
+        ctx.translate(tx, ty);
+        ctx.rotate(turret.angle || 0);
+        
+        ctx.fillStyle = '#aa6633';
+        ctx.fillRect(6, -3, 14, 6);
+        
+        ctx.fillStyle = '#ffaa44';
+        ctx.shadowColor = '#ffaa44';
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.arc(18, 0, 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        
+        ctx.restore();
+        
+        const maxTimer = CONFIG.STRATEGEMS.turret.duration || 5;
+        const progress = (turret.timer && !isNaN(turret.timer)) ? Math.max(0, Math.min(1, turret.timer / maxTimer)) : 1;
+        const barWidth = 30;
+        const barHeight = 3;
+        const barX = tx - barWidth / 2;
+        const barY = ty - 20;
+        
+        ctx.fillStyle = 'rgba(0,0,0,0.5)';
+        ctx.fillRect(barX, barY, barWidth, barHeight);
+        ctx.fillStyle = progress > 0.3 ? '#44ff88' : '#ff4444';
+        ctx.fillRect(barX, barY, barWidth * progress, barHeight);
+    }
+
     // ===== ИГРОК =====
     const glow = ctx.createRadialGradient(p.x, p.y, 5, p.x, p.y, 60);
     glow.addColorStop(0, CONFIG.COLORS.playerGlow || 'rgba(0, 221, 255, 0.3)');
@@ -403,8 +641,7 @@ function draw() {
 
     ctx.restore();
 
-
-    // ===== ПРИЦЕЛ (поверх камеры) =====
+    // ===== ПРИЦЕЛ =====
     const mx = window.mouse.x;
     const my = window.mouse.y;
     ctx.strokeStyle = 'rgba(0, 204, 255, 0.4)';
@@ -423,69 +660,6 @@ function draw() {
     ctx.fillStyle = 'rgba(255,255,255,0.2)';
     ctx.font = '12px monospace';
     ctx.fillText(`👾 ${alive}`, 10, H - 15);
-
-    // ===== ТУРЕЛЬ (ПРАВИЛЬНАЯ ОТРИСОВКА С УЧЁТОМ КАМЕРЫ) =====
-const turret = state.strategems.turret;
-if (turret.active && turret.x && turret.y) {
-    const tx = turret.x;
-    const ty = turret.y;
-    
-    // Тень
-    ctx.fillStyle = 'rgba(0,0,0,0.3)';
-    ctx.beginPath();
-    ctx.arc(tx + 2, ty + 2, 14, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Основание
-    ctx.fillStyle = '#666688';
-    ctx.beginPath();
-    ctx.arc(tx, ty, 14, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = '#8899aa';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-    
-    // Верхняя часть
-    ctx.fillStyle = '#ff8844';
-    ctx.shadowColor = '#ff8844';
-    ctx.shadowBlur = 15;
-    ctx.beginPath();
-    ctx.arc(tx, ty, 10, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.shadowBlur = 0;
-    
-    // Ствол (смотрит в сторону угла)
-    ctx.save();
-    ctx.translate(tx, ty);
-    ctx.rotate(turret.angle || 0);
-    
-    ctx.fillStyle = '#aa6633';
-    ctx.fillRect(6, -3, 14, 6);
-    
-    // Дуло
-    ctx.fillStyle = '#ffaa44';
-    ctx.shadowColor = '#ffaa44';
-    ctx.shadowBlur = 10;
-    ctx.beginPath();
-    ctx.arc(18, 0, 3, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.shadowBlur = 0;
-    
-    ctx.restore();
-    
-    // Полоска времени
-    const maxTimer = CONFIG.STRATEGEMS.turret.duration || 5;
-    const progress = (turret.timer && !isNaN(turret.timer)) ? Math.max(0, Math.min(1, turret.timer / maxTimer)) : 1;
-    const barWidth = 30;
-    const barHeight = 3;
-    const barX = tx - barWidth / 2;
-    const barY = ty - 20;
-    
-    ctx.fillStyle = 'rgba(0,0,0,0.5)';
-    ctx.fillRect(barX, barY, barWidth, barHeight);
-    ctx.fillStyle = progress > 0.3 ? '#44ff88' : '#ff4444';
-    ctx.fillRect(barX, barY, barWidth * progress, barHeight);
-}
 }
 
 function dispatchMessage(msg) {
