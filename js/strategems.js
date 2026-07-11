@@ -70,7 +70,30 @@ function useStrategem(type) {
             s.cooldown = CONFIG.STRATEGEMS.airstrike.cooldown;
             break;
         }
+        
+        case 'machinegun': {
+            const wx = window.mouse.x + camera.x;
+            const wy = window.mouse.y + camera.y;
             
+            s.active = true;
+            s.x = wx;
+            s.y = wy;
+            s.timer = CONFIG.STRATEGEMS.machinegun.pickupTime || 10;
+            s.pickedUp = false;
+            s.fired = false;
+            s.ammo = CONFIG.STRATEGEMS.machinegun.ammo || 30;
+            s.angle = 0;
+            s._shootTimer = 0;
+            
+            // Эффект падения
+            spawnParticles(wx, wy - 30, '#44ddff', 30, 250);
+            spawnParticles(wx, wy - 30, '#88ddff', 20, 150);
+            
+            dispatchMessage('⚡ Капсула с пулемётом падает! Подойдите и нажмите F');
+            s.cooldown = CONFIG.STRATEGEMS.machinegun.cooldown;
+            break;
+        }
+        
         case 'rocket': {
             const rocketTargetX = window.mouse.x + camera.x;
             const rocketTargetY = window.mouse.y + camera.y;
@@ -147,7 +170,7 @@ function useStrategem(type) {
         }
     }
     
-    updateStrategemUI();
+    if (typeof updateStrategemHUD === 'function') updateStrategemHUD();
     updateHUD();
 }
 
@@ -189,8 +212,9 @@ function updateStrategemUI() {
 // ============================================================
 
 function updateStrategemCooldowns(dt) {
-    const types = ['airstrike', 'turret', 'rocket', 'napalm'];
-    types.forEach(type => {
+    // Обновляем все стратегемы в state.strategems
+    const allTypes = ['airstrike', 'turret', 'rocket', 'napalm', 'machinegun'];
+    allTypes.forEach(type => {
         const s = state.strategems[type];
         if (!s) return;
         
@@ -199,24 +223,34 @@ function updateStrategemCooldowns(dt) {
             if (s.cooldown < 0) s.cooldown = 0;
         }
         
-        if (s.active) {
-            if (type === 'turret') {
-                s.timer -= dt;
-                if (s.timer <= 0) {
-                    s.active = false;
-                    dispatchMessage('🤖 Турель отключена');
-                    spawnParticles(s.x, s.y, '#ffaa44', 15, 150);
-                    updateStrategemUI();
-                }
+        // Активные стратегемы
+        if (s.active && type === 'turret') {
+            s.timer -= dt;
+            if (s.timer <= 0) {
+                s.active = false;
+                dispatchMessage('🤖 Турель отключена');
+                spawnParticles(s.x, s.y, '#ffaa44', 15, 150);
             }
-            if (type === 'rocket') {
-                // Ракетница обрабатывается в update() game.js
-                // Таймер капсулы обновляется там же
+        }
+        if (s.active && type === 'napalm') {
+            s.timer -= dt;
+            if (s.timer <= 0) {
+                s.active = false;
+                dispatchMessage('🔥 Огонь погас');
             }
+        }
+        if (s.active && type === 'rocket') {
+            // Ракетница обрабатывается в game.js
+        }
+        if (s.active && type === 'machinegun') {
+            // Пулемёт обрабатывается в game.js
         }
     });
     
-    updateStrategemUI();
+    // ⭐ ОБНОВЛЯЕМ HUD ПО СЛОТАМ (а не по ID)
+    if (typeof updateStrategemHUD === 'function') {
+        updateStrategemHUD();
+    }
 }
 
 // ============================================================
@@ -226,37 +260,47 @@ function updateStrategemCooldowns(dt) {
 function updateTurret(dt) {
     const t = state.strategems.turret;
     if (!t || !t.active) return;
-    
-    // Вращаем турель
-    t.angle = (t.angle || 0) + dt * 1.5;
-    
+
+    // Найти ближайшего врага
     let nearest = null;
     let minDist = Infinity;
     state.enemies.forEach(e => {
         if (e.dead) return;
         const dx = e.x - t.x;
         const dy = e.y - t.y;
-        const dist = Math.sqrt(dx*dx + dy*dy);
+        const dist = dx*dx + dy*dy;
         if (dist < minDist) {
             minDist = dist;
             nearest = e;
         }
     });
-    
-    if (nearest && minDist < 350) {
+
+    const hasTarget = nearest && minDist < 350 * 350;
+
+    if (hasTarget) {
+        // ===== ПОВОРОТ К ВРАГУ =====
+        const targetAngle = Math.atan2(nearest.y - t.y, nearest.x - t.x);
+        let diff = targetAngle - (t.angle || 0);
+        while (diff > Math.PI) diff -= Math.PI * 2;
+        while (diff < -Math.PI) diff += Math.PI * 2;
+        t.angle = (t.angle || 0) + diff * Math.min(1, dt * 8);
+
+        // ===== СТРЕЛЬБА =====
         if (!t._shootTimer) t._shootTimer = 0;
         t._shootTimer -= dt;
-        
+
         if (t._shootTimer <= 0) {
             const dx = nearest.x - t.x;
             const dy = nearest.y - t.y;
             const len = Math.sqrt(dx*dx + dy*dy);
             if (len > 0) {
+                // ⭐ ПУЛЯ ВЫЛЕТАЕТ ИЗ ДУЛА
+                const spawnDist = 22;
                 state.bullets.push({
-                    x: t.x + (dx/len) * 18,
-                    y: t.y + (dy/len) * 18,
-                    vx: (dx/len) * 450,
-                    vy: (dy/len) * 450,
+                    x: t.x + Math.cos(t.angle) * spawnDist,
+                    y: t.y + Math.sin(t.angle) * spawnDist,
+                    vx: (dx / len) * 450,
+                    vy: (dy / len) * 450,
                     radius: 4,
                     damage: 25,
                     life: 1.5,
@@ -264,14 +308,20 @@ function updateTurret(dt) {
                     owner: 'turret',
                     color: '#ff8844'
                 });
-                spawnParticles(t.x + (dx/len) * 20, t.y + (dy/len) * 20, '#ffaa44', 4, 80);
+                spawnParticles(
+                    t.x + Math.cos(t.angle) * 24,
+                    t.y + Math.sin(t.angle) * 24,
+                    '#ffaa44', 4, 80
+                );
                 t._shootTimer = 0.25;
             }
         }
     } else {
+        // Нет врагов — просто стоим, ничего не делаем
         t._shootTimer = 0;
     }
 }
+
 
 // ============================================================
 //  ТРЯСКА КАМЕРЫ

@@ -9,121 +9,98 @@
 <body>
 
 <div id="gameWrapper">
-    <canvas id="gameCanvas" width="800" height="600" tabindex="0"></canvas>
     
-    <!-- ===== HUD ===== -->
-    <div id="hud">
-        <div class="hud-left">
-            <div class="hud-item">
-                <div class="label">Здоровье</div>
-                <div class="value" id="hudHealth">❤️❤️❤️❤️❤️</div>
+    <!-- ===== ИГРОВОЙ КОНТЕЙНЕР ===== -->
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="800" height="600" tabindex="0"></canvas>
+        
+        <!-- HUD -->
+        <div id="hud">
+            <div class="hud-left">
+                <div class="hud-item">
+                    <div class="label">Здоровье</div>
+                    <div class="value" id="hudHealth">❤️❤️❤️❤️❤️</div>
+                </div>
+                <div class="hud-item">
+                    <div class="label">Убийства</div>
+                    <div class="value" id="hudKills">0</div>
+                </div>
+                <div class="hud-item">
+                    <div class="label">Осталось</div>
+                    <div class="value" id="hudRemaining">0</div>
+                </div>
+                <div class="hud-item">
+                    <div class="label">Комбо</div>
+                    <div class="value" id="hudCombo">x1</div>
+                </div>
             </div>
-            <div class="hud-item">
-                <div class="label">Убийства</div>
-                <div class="value" id="hudKills">0</div>
-            </div>
-            <div class="hud-item">
-                <div class="label">Осталось</div>
-                <div class="value" id="hudRemaining">0</div>
-            </div>
-            <div class="hud-item">
-                <div class="label">Комбо</div>
-                <div class="value" id="hudCombo">x1</div>
-            </div>
-            <div id="rocketIndicator" style="
-                position: absolute;
-                bottom: 120px;
-                right: 20px;
-                background: rgba(0,20,50,0.8);
-                border: 2px solid #ff8844;
-                border-radius: 8px;
-                padding: 8px 16px;
-                color: #ff8844;
-                font-size: 14px;
-                display: none;
-                z-index: 10;
-                backdrop-filter: blur(4px);
-                pointer-events: none;">
-                🚀 Ракетница [ЛКМ]
+            <div class="hud-right">
+                <div class="hud-item">
+                    <div class="label">Время</div>
+                    <div class="value" id="hudTime">0с</div>
+                </div>
+                <div class="hud-item">
+                    <div class="label">Кристаллы</div>
+                    <div class="value gold" id="hudCrystals">💎 0</div>
+                </div>
             </div>
         </div>
-        <div class="hud-right">
-            <div class="hud-item">
-                <div class="label">Время</div>
-                <div class="value" id="hudTime">0с</div>
+        
+        <!-- СТРАТЕГЕМЫ -->
+        <div id="strategems">
+            <div class="strategem" id="strat1">
+                <span class="key">1</span>
+                <span class="icon">💥</span>
+                <span class="name">Авиаудар</span>
+                <span class="cooldown" id="cooldown1"></span>
             </div>
-            <div class="hud-item">
-                <div class="label">Кристаллы</div>
-                <div class="value gold" id="hudCrystals">💎 0</div>
+            <div class="strategem" id="strat2">
+                <span class="key">2</span>
+                <span class="icon">🤖</span>
+                <span class="name">Турель</span>
+                <span class="cooldown" id="cooldown2"></span>
+            </div>
+            <div class="strategem" id="strat3">
+                <span class="key">3</span>
+                <span class="icon">🚀</span>
+                <span class="name">Ракетница</span>
+                <span class="cooldown" id="cooldown3"></span>
+            </div>
+            <div class="strategem" id="strat4">
+                <span class="key">4</span>
+                <span class="icon">🔥</span>
+                <span class="name">Напалм</span>
+                <span class="cooldown" id="cooldown4"></span>
             </div>
         </div>
-    </div>
-    
-    <!-- ===== СТРАТЕГЕМЫ ===== -->
-    <div id="strategems">
-    <div class="strategem" id="strat1">
-        <span class="key">1</span>
-        <span class="icon">💥</span>
-        <span class="name">Авиаудар</span>
-        <span class="cooldown" id="cooldown1"></span>
-    </div>
-    <div class="strategem" id="strat2">
-        <span class="key">2</span>
-        <span class="icon">🤖</span>
-        <span class="name">Турель</span>
-        <span class="cooldown" id="cooldown2"></span>
-    </div>
-    <div class="strategem" id="strat3">
-        <span class="key">3</span>
-        <span class="icon">🚀</span>
-        <span class="name">Ракетница</span>
-        <span class="cooldown" id="cooldown3"></span>
-    </div>
-    <div class="strategem" id="strat4">
-    <span class="key">4</span>
-    <span class="icon">🔥</span>
-    <span class="name">Напалм</span>
-    <span class="cooldown" id="cooldown4"></span>
-    </div>
-</div>
-    
-    <!-- ===== ДИСПЕТЧЕР ===== -->
-    <div id="dispatcher">🚀 Готов к высадке</div>
-    
-    <!-- ===== ПОДСКАЗКА ЭВАКУАЦИИ ===== -->
-    <div id="evacuationHint" style="
-        position: absolute;
-        bottom: 140px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: rgba(0,255,0,0.15);
-        color: #44ff88;
-        padding: 8px 20px;
-        border-radius: 8px;
-        border: 2px solid #44ff88;
-        font-size: 18px;
-        font-weight: bold;
-        display: none;
-        z-index: 30;
-        pointer-events: none;
-        text-shadow: 0 0 20px rgba(68,255,136,0.3);
-    ">
-        🚀 Нажмите <kbd style="background:rgba(68,255,136,0.2);padding:2px 10px;border-radius:4px;">E</kbd> для эвакуации
-    </div>
-    
-    <!-- ===== УПРАВЛЕНИЕ ===== -->
-    <div id="controls">
-        <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> — движение &nbsp;·&nbsp;
-        <kbd>Shift</kbd> — рывок &nbsp;·&nbsp;
-        <kbd>ЛКМ</kbd> — стрельба &nbsp;·&nbsp;
-        <kbd>E</kbd> — эвакуация &nbsp;·&nbsp;
-        <kbd>R</kbd> — рестарт &nbsp;·&nbsp;
-        <kbd>1-4</kbd> — стратегемы
-    </div>
-    
+        
+        <!-- ДИСПЕТЧЕР -->
+        <div id="dispatcher">🚀 Готов к высадке</div>
+        
+        <!-- ПОДСКАЗКА ЭВАКУАЦИИ -->
+        <div id="evacuationHint">
+            🚀 Нажмите <kbd>E</kbd> для эвакуации
+        </div>
+        
+        <!-- ИНДИКАТОРЫ -->
+        <div id="rocketIndicator">🚀 Ракетница [ЛКМ]</div>
+        <div id="machinegunIndicator">⚡ Пулемёт [30]</div>
+        
+        <!-- УПРАВЛЕНИЕ -->
+        <div id="controls">
+            <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> — движение &nbsp;·&nbsp;
+            <kbd>Shift</kbd> — рывок &nbsp;·&nbsp;
+            <kbd>ЛКМ</kbd> — стрельба &nbsp;·&nbsp;
+            <kbd>E</kbd> — эвакуация &nbsp;·&nbsp;
+            <kbd>R</kbd> — рестарт &nbsp;·&nbsp;
+            <kbd>1-4</kbd> — стратегемы
+        </div>
+        
+    </div> <!-- ← ЗАКРЫТИЕ gameContainer -->
+
     <!-- ===== МЕНЮ ===== -->
     <div id="menu">
-        <h1>VOID SPLITTER</h1>git status
+        <h1>🚀 VOID SPLITTER</h1>
         <p class="subtitle">"Добро пожаловать на передовую, боец."</p>
         
         <div class="daily-info">
@@ -141,6 +118,42 @@
         <button id="startBtn">🚀 ВЫСАДКА НА ПЛАНЕТУ</button>
         
         <p class="footer">"Помни, боец: смерть — это не поражение, это перезагрузка."</p>
+    </div>
+    
+    <!-- ===== ЭКРАН ВЫБОРА СТРАТЕГЕМ ===== -->
+    <div id="strategemSelect">
+        <h1>🎯 ВЫБОР СТРАТЕГЕМ</h1>
+        <p class="subtitle">Выберите 4 стратегемы из 5 для миссии</p>
+        
+        <div id="strategemSlots">
+            <div class="slot" data-slot="0">
+                <span class="slot-number">1</span>
+                <span class="slot-icon" id="slotIcon0">⬜</span>
+                <span class="slot-name" id="slotName0">Пусто</span>
+            </div>
+            <div class="slot" data-slot="1">
+                <span class="slot-number">2</span>
+                <span class="slot-icon" id="slotIcon1">⬜</span>
+                <span class="slot-name" id="slotName1">Пусто</span>
+            </div>
+            <div class="slot" data-slot="2">
+                <span class="slot-number">3</span>
+                <span class="slot-icon" id="slotIcon2">⬜</span>
+                <span class="slot-name" id="slotName2">Пусто</span>
+            </div>
+            <div class="slot" data-slot="3">
+                <span class="slot-number">4</span>
+                <span class="slot-icon" id="slotIcon3">⬜</span>
+                <span class="slot-name" id="slotName3">Пусто</span>
+            </div>
+        </div>
+        
+        <div id="strategemPool"></div>
+        
+        <div style="display:flex;gap:10px;margin-top:15px;">
+            <button id="confirmStrategemsBtn">✅ ПОДТВЕРДИТЬ ВЫБОР</button>
+            <button id="resetStrategemsBtn">🔄 СБРОСИТЬ</button>
+        </div>
     </div>
     
     <!-- ===== ЭКРАН СМЕРТИ ===== -->
@@ -165,7 +178,8 @@
         </div>
         <button id="resultsBtn">📊 В МЕНЮ</button>
     </div>
-</div>
+
+</div> <!-- ← ЗАКРЫТИЕ gameWrapper -->
 
 <script src="js/config.js"></script>
 <script src="js/state.js"></script>

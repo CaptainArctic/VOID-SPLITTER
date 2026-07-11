@@ -35,9 +35,9 @@ const CONFIG = {
     ALL_STRATEGEMS: [
         { id: 'airstrike', name: 'Авиаудар', icon: '💥', cooldown: 8, unlocked: true, description: 'Мощный удар с орбиты' },
         { id: 'turret', name: 'Турель', icon: '🤖', cooldown: 12, unlocked: true, description: 'Автоматическая турель' },
-        { id: 'rocket', name: 'Ракетница', icon: '🚀', cooldown: 15, unlocked: true, description: 'Мощный выстрел (одноразовая)',
-          id: 'napalm', name: 'Напалм', icon: '🔥', cooldown: 10, unlocked: true, description: 'Взрыв + огонь по площади'
-         }
+        { id: 'rocket', name: 'Ракетница', icon: '🚀', cooldown: 15, unlocked: true, description: 'Мощный выстрел (одноразовая)'},
+        { id: 'napalm', name: 'Напалм', icon: '🔥', cooldown: 10, unlocked: true, description: 'Взрыв + огонь по площади'},
+        { id: 'machinegun', name: 'Пулемёт', icon: '⚡', cooldown: 12, unlocked: true, description: 'Быстрая стрельба (одноразовый)'}
     ],
 
     DEFAULT_STRATEGEMS: ['airstrike', 'turret', 'rocket', 'napalm'],
@@ -59,7 +59,15 @@ const CONFIG = {
             pickupTime: 10,
             fallDuration: 1.5
         },
-        
+        machinegun: {
+        cooldown: 12,
+        damage: 15,
+        ammo: 30,
+        fireRate: 0.07,
+        speed: 500,
+        pickupTime: 10,
+        fallDuration: 1.5
+    }
     },
     
     // === КОМБО ===

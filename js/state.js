@@ -20,9 +20,10 @@ const state = {
     particles: [],
     strategems: {
         airstrike: { cooldown: 0, active: false },
-        turret: { cooldown: 0, active: false, timer: 0, x: 0, y: 0 },
+        turret: { cooldown: 0, active: false, timer: 0, x: 0, y: 0, angle: 0, _shootTimer: 0 },
+        rocket: { cooldown: 0, active: false, pickedUp: false, fired: false, timer: 0, x: 0, y: 0, angle: 0 },
         napalm: { cooldown: 0, active: false, timer: 0, x: 0, y: 0, radius: 120, tickTimer: 0 },
-        rocket: { cooldown: 0, active: false, pickedUp: false, fired: false, timer: 0, x: 0, y: 0, angle: 0 }
+        machinegun: { cooldown: 0, active: false, pickedUp: false, fired: false, timer: 0, x: 0, y: 0, angle: 0, ammo: 0, _shootTimer: 0 }
     },
     wave: 1,
     kills: 0,
@@ -32,13 +33,14 @@ const state = {
     comboTimer: 0,
     shootCooldown: 0,
     gameOver: false,
-    // === УРОВЕНЬ ===
     levelComplete: false,
     isEvacuating: false,
     levelTime: 0,
     spawnTimer: null,
     enemiesSpawned: 0,
-    totalEnemies: CONFIG.LEVEL_ENEMIES
+    totalEnemies: CONFIG.LEVEL_ENEMIES,
+    // Выбранные стратегемы (загружаем из localStorage)
+    selectedStrategems: []
 };
 
 const keys = { w: false, a: false, s: false, d: false, shift: false };

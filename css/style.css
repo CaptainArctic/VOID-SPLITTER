@@ -131,7 +131,7 @@ canvas {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    z-index: 100;
+    z-index: 50;
     padding: 30px;
     border-radius: 12px;
 }
@@ -287,4 +287,161 @@ canvas {
 #results button:hover {
     transform: scale(1.05);
     box-shadow: 0 0 40px rgba(255,204,0,0.3);
+}
+
+/* ===== ВЫБОР СТРАТЕГЕМ ===== */
+#strategemSelect {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(ellipse at center, #0a0a1a 0%, #000000 100%);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 20px;
+    border-radius: 12px;
+    pointer-events: auto;
+}
+
+#strategemSelect * {
+    pointer-events: auto;
+}
+
+#strategemSelect h1 {
+    font-size: 32px;
+    color: #00ccff;
+    margin-bottom: 5px;
+}
+
+#strategemSelect .subtitle {
+    color: rgba(255,255,255,0.4);
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+#strategemSlots {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.slot {
+    width: 100px;
+    height: 100px;
+    background: rgba(0,20,50,0.5);
+    border: 2px solid rgba(0,170,255,0.2);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    transition: all 0.3s;
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+.slot:hover {
+    border-color: #00ccff;
+    box-shadow: 0 0 30px rgba(0,204,255,0.1);
+}
+
+.slot .slot-number {
+    font-size: 12px;
+    color: rgba(255,255,255,0.2);
+}
+
+.slot .slot-icon {
+    font-size: 32px;
+}
+
+.slot .slot-name {
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+}
+
+.slot.filled {
+    border-color: rgba(0,204,255,0.4);
+    background: rgba(0,20,50,0.7);
+}
+
+.slot.filled .slot-name {
+    color: #00ccff;
+}
+
+#strategemPool {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    max-width: 500px;
+    justify-content: center;
+    margin-bottom: 10px;
+    pointer-events: auto;
+}
+
+.strategem-item {
+    padding: 8px 16px;
+    background: rgba(0,20,50,0.5);
+    border: 1px solid rgba(0,170,255,0.15);
+    border-radius: 8px;
+    color: #00ccff;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    user-select: none;
+    pointer-events: auto;
+}
+
+.strategem-item:hover {
+    border-color: #00ccff;
+    box-shadow: 0 0 20px rgba(0,204,255,0.1);
+}
+
+.strategem-item.selected {
+    border-color: #44ff88;
+    background: rgba(68,255,136,0.1);
+    color: #44ff88;
+}
+
+#strategemSelect button {
+    padding: 10px 30px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: 'Courier New', monospace;
+    margin: 4px;
+    pointer-events: auto;
+}
+
+#confirmStrategemsBtn {
+    background: #00ccff;
+    color: #0a0a1a;
+}
+
+#confirmStrategemsBtn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 40px rgba(0,204,255,0.3);
+}
+
+#resetStrategemsBtn {
+    background: rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.5);
+}
+
+#resetStrategemsBtn:hover {
+    background: rgba(255,255,255,0.2);
+}
+
+#gameContainer {
+    display: block;
+    position: relative;
+    width: 800px;
+    height: 600px;
 }

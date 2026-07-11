@@ -46,6 +46,62 @@ function shootBullet(targetX, targetY) {
     });
 }
 
+// ============================================================
+//  ПУЛЕМЁТ
+// ============================================================
+
+function fireMachinegun() {
+    const mg = state.strategems.machinegun;
+    if (!mg.pickedUp || mg.fired) return;
+    if (mg.ammo <= 0) {
+        mg.fired = true;
+        mg.pickedUp = false;
+        mg.active = false;
+        document.getElementById('machinegunIndicator').style.display = 'none';
+        dispatchMessage('⚡ Пулемёт опустошён!');
+        return;
+    }
+    if (state.gameOver) return;
+    
+    const p = state.player;
+    const mx = window.mouse.x + camera.x;
+    const my = window.mouse.y + camera.y;
+    const dx = mx - p.x;
+    const dy = my - p.y;
+    const len = Math.sqrt(dx*dx + dy*dy);
+    if (len < 5) return;
+    
+    state.bullets.push({
+        x: p.x + Math.cos(p.angle) * 18,
+        y: p.y + Math.sin(p.angle) * 18,
+        vx: (dx/len) * 500,
+        vy: (dy/len) * 500,
+        radius: 3,
+        damage: CONFIG.STRATEGEMS.machinegun.damage || 15,
+        life: 1.5,
+        trail: [],
+        owner: 'player',
+        color: '#44ddff'
+    });
+    
+    spawnParticles(p.x + Math.cos(p.angle) * 22, p.y + Math.sin(p.angle) * 22, '#44ddff', 3, 60);
+    
+    mg.ammo--;
+    
+    const indicator = document.getElementById('machinegunIndicator');
+    if (indicator) {
+        indicator.textContent = `⚡ Пулемёт [${mg.ammo}]`;
+    }
+    
+    if (mg.ammo <= 0) {
+        mg.fired = true;
+        mg.pickedUp = false;
+        mg.active = false;
+        if (indicator) indicator.style.display = 'none';
+        dispatchMessage('⚡ Пулемёт опустошён!');
+    }
+}
+
 // ===== ВЫСТРЕЛ ИЗ РАКЕТНИЦЫ =====
 function fireRocket() {
     const rocket = state.strategems.rocket;

@@ -5,34 +5,11 @@ const canvas = document.getElementById('gameCanvas');
 window.addEventListener('keydown', function(e) {
     const key = e.key.toLowerCase();
     
+    // === ДВИЖЕНИЕ ===
     if (key === 'w' || key === 'a' || key === 's' || key === 'd') {
         window.keys[key] = true;
         e.preventDefault();
         e.stopPropagation();
-        return false;
-    }
-    
-        if (key === 'f')
-    {
-        e.preventDefault();
-        // Проверяем, есть ли рядом капсула с ракетницей
-        const rocket = state.strategems.rocket;
-        if (rocket.active && !rocket.pickedUp && !rocket.fired) {
-            const p = state.player;
-            const dx = p.x - rocket.x;
-            const dy = p.y - rocket.y;
-            const dist = Math.sqrt(dx*dx + dy*dy);
-            if (dist < 50) {
-                // Подбираем ракетницу
-                rocket.pickedUp = true;
-                rocket.carriedBy = 'player';
-                dispatchMessage('🚀 Ракетница подобрана! Нажмите ЛКМ для выстрела.');
-                // Показываем индикатор, что у игрока ракетница
-                document.getElementById('rocketIndicator').style.display = 'block';
-            } else {
-                dispatchMessage('⚠️ Подойдите ближе к капсуле!');
-            }
-        }
         return false;
     }
     
@@ -55,10 +32,75 @@ window.addEventListener('keydown', function(e) {
         return false;
     }
     
-    if (key === '1') { e.preventDefault(); if (typeof useStrategem === 'function') useStrategem('airstrike'); }
-if (key === '2') { e.preventDefault(); if (typeof useStrategem === 'function') useStrategem('turret'); }
-if (key === '3') { e.preventDefault(); if (typeof useStrategem === 'function') useStrategem('rocket'); }
-if (key === '4') { e.preventDefault(); if (typeof useStrategem === 'function') useStrategem('napalm'); }
+    // === СТРАТЕГЕМЫ (читаем из выбранных слотов) ===
+    if (key === '1') {
+        e.preventDefault();
+        const type = state.selectedStrategems[0];
+        if (type && typeof useStrategem === 'function') {
+            useStrategem(type);
+        } else {
+            dispatchMessage('⚠️ Слот 1 пуст');
+        }
+    }
+    if (key === '2') {
+        e.preventDefault();
+        const type = state.selectedStrategems[1];
+        if (type && typeof useStrategem === 'function') {
+            useStrategem(type);
+        } else {
+            dispatchMessage('⚠️ Слот 2 пуст');
+        }
+    }
+    if (key === '3') {
+        e.preventDefault();
+        const type = state.selectedStrategems[2];
+        if (type && typeof useStrategem === 'function') {
+            useStrategem(type);
+        } else {
+            dispatchMessage('⚠️ Слот 3 пуст');
+        }
+    }
+    if (key === '4') {
+        e.preventDefault();
+        const type = state.selectedStrategems[3];
+        if (type && typeof useStrategem === 'function') {
+            useStrategem(type);
+        } else {
+            dispatchMessage('⚠️ Слот 4 пуст');
+        }
+    }
+    
+    // === КЛАВИША F — ПОДБОР ===
+    if (key === 'f') {
+        e.preventDefault();
+        // Проверяем ракетницу
+        const rocket = state.strategems.rocket;
+        if (rocket.active && !rocket.pickedUp && !rocket.fired) {
+            const p = state.player;
+            const dx = p.x - rocket.x;
+            const dy = p.y - rocket.y;
+            if (dx*dx + dy*dy < 50*50) {
+                rocket.pickedUp = true;
+                dispatchMessage('🚀 Ракетница подобрана! ЛКМ — выстрел');
+                document.getElementById('rocketIndicator').style.display = 'block';
+                return;
+            }
+        }
+        // Проверяем пулемёт
+        const mg = state.strategems.machinegun;
+        if (mg.active && !mg.pickedUp && !mg.fired) {
+            const p = state.player;
+            const dx = p.x - mg.x;
+            const dy = p.y - mg.y;
+            if (dx*dx + dy*dy < 50*50) {
+                mg.pickedUp = true;
+                dispatchMessage('⚡ Пулемёт подобран! ЛКМ — стрельба');
+                document.getElementById('machinegunIndicator').style.display = 'block';
+                return;
+            }
+        }
+        dispatchMessage('⚠️ Рядом нет капсулы');
+    }
 });
 
 window.addEventListener('keyup', function(e) {

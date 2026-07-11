@@ -65,6 +65,17 @@ function update(dt) {
     }
     }
 
+    // ===== ПУЛЕМЁТ (ВЫСТРЕЛ) =====
+const mg = state.strategems.machinegun;
+if (mg.pickedUp && !mg.fired && mg.ammo > 0 && window.mouse.down) {
+    if (!mg._shootTimer) mg._shootTimer = 0;
+    mg._shootTimer -= dt;
+    if (mg._shootTimer <= 0) {
+        fireMachinegun();
+        mg._shootTimer = CONFIG.STRATEGEMS.machinegun.fireRate || 0.07;
+        }
+    }
+
     // === СТРЕЛЬБА (обычная) ===
     state.shootCooldown -= dt;
     if (window.mouse.down && state.shootCooldown <= 0 && !p.isDashing) {
@@ -523,6 +534,76 @@ if (napalm.active) {
         ctx.textAlign = 'center';
         ctx.fillText('[F] Подобрать', rx, ry + 24);
     }
+
+    // ===== ПУЛЕМЁТ (капсула) =====
+const mg = state.strategems.machinegun;
+if (mg.active && mg.x && mg.y && !mg.pickedUp && !mg.fired) {
+    const mx = mg.x;
+    const my = mg.y;
+    const timeLeft = mg.timer || 10;
+    
+    // Свечение
+    const glow = ctx.createRadialGradient(mx, my, 2, mx, my, 25);
+    glow.addColorStop(0, 'rgba(68, 221, 255, 0.3)');
+    glow.addColorStop(1, 'rgba(68, 221, 255, 0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(mx, my, 25, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.shadowColor = '#44ddff';
+    ctx.shadowBlur = 15;
+    
+    // Тень
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.beginPath();
+    ctx.ellipse(mx + 2, my + 4, 12, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Капсула
+    const grad = ctx.createRadialGradient(mx - 3, my - 3, 2, mx, my, 14);
+    grad.addColorStop(0, '#88ddff');
+    grad.addColorStop(0.4, '#44bbdd');
+    grad.addColorStop(1, '#226688');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.ellipse(mx, my, 14, 10, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.strokeStyle = 'rgba(68, 221, 255, 0.5)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.ellipse(mx, my, 14, 10, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    
+    // Иконка
+    ctx.font = '18px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText('⚡', mx, my + 1);
+    
+    // Индикатор времени
+    const maxTime = CONFIG.STRATEGEMS.machinegun.pickupTime || 10;
+    const progress = Math.max(0, timeLeft / maxTime);
+    const barWidth = 30;
+    const barHeight = 3;
+    const barX = mx - barWidth / 2;
+    const barY = my - 18;
+    
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.fillRect(barX, barY, barWidth, barHeight);
+    ctx.fillStyle = progress > 0.3 ? '#44ddff' : '#ff4444';
+    ctx.fillRect(barX, barY, barWidth * progress, barHeight);
+    
+    // Подсказка
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.font = '10px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('[F] Подобрать', mx, my + 24);
+}
+
 
     // ===== ТУРЕЛЬ =====
     const turret = state.strategems.turret;
