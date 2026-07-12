@@ -46,109 +46,6 @@ function shootBullet(targetX, targetY) {
     });
 }
 
-// ============================================================
-//  ПУЛЕМЁТ
-// ============================================================
-
-function fireMachinegun() {
-    const mg = state.strategems.machinegun;
-    if (!mg.pickedUp || mg.fired) return;
-    if (mg.ammo <= 0) {
-        mg.fired = true;
-        mg.pickedUp = false;
-        mg.active = false;
-        document.getElementById('machinegunIndicator').style.display = 'none';
-        dispatchMessage('⚡ Пулемёт опустошён!');
-        return;
-    }
-    if (state.gameOver) return;
-    
-    const p = state.player;
-    const mx = window.mouse.x + camera.x;
-    const my = window.mouse.y + camera.y;
-    const dx = mx - p.x;
-    const dy = my - p.y;
-    const len = Math.sqrt(dx*dx + dy*dy);
-    if (len < 5) return;
-    
-    state.bullets.push({
-        x: p.x + Math.cos(p.angle) * 18,
-        y: p.y + Math.sin(p.angle) * 18,
-        vx: (dx/len) * 500,
-        vy: (dy/len) * 500,
-        radius: 3,
-        damage: CONFIG.STRATEGEMS.machinegun.damage || 15,
-        life: 1.5,
-        trail: [],
-        owner: 'player',
-        color: '#44ddff'
-    });
-    
-    spawnParticles(p.x + Math.cos(p.angle) * 22, p.y + Math.sin(p.angle) * 22, '#44ddff', 3, 60);
-    
-    mg.ammo--;
-    
-    const indicator = document.getElementById('machinegunIndicator');
-    if (indicator) {
-        indicator.textContent = `⚡ Пулемёт [${mg.ammo}]`;
-    }
-    
-    if (mg.ammo <= 0) {
-        mg.fired = true;
-        mg.pickedUp = false;
-        mg.active = false;
-        if (indicator) indicator.style.display = 'none';
-        dispatchMessage('⚡ Пулемёт опустошён!');
-    }
-}
-
-// ===== ВЫСТРЕЛ ИЗ РАКЕТНИЦЫ =====
-function fireRocket() {
-    const rocket = state.strategems.rocket;
-    if (!rocket.pickedUp || rocket.fired) return;
-    if (state.gameOver) return;
-    
-    const p = state.player;
-    const mx = window.mouse.x + camera.x;
-    const my = window.mouse.y + camera.y;
-    const dx = mx - p.x;
-    const dy = my - p.y;
-    const len = Math.sqrt(dx*dx + dy*dy);
-    if (len < 10) return;
-    
-    // Огромная пуля (ракета)
-    state.bullets.push({
-        x: p.x + Math.cos(p.angle) * 20,
-        y: p.y + Math.sin(p.angle) * 20,
-        vx: (dx / len) * 700,
-        vy: (dy / len) * 700,
-        radius: 8,
-        damage: 999,
-        life: 2.5,
-        trail: [],
-        owner: 'player',
-        color: '#ff8800',
-        isRocket: true
-    });
-    
-    // Эффект выстрела (большая вспышка)
-    spawnParticles(p.x + Math.cos(p.angle) * 25, p.y + Math.sin(p.angle) * 25, '#ff8800', 30, 300);
-    spawnParticles(p.x + Math.cos(p.angle) * 25, p.y + Math.sin(p.angle) * 25, '#ffcc44', 20, 200);
-    
-    // Ракетница исчезает
-    rocket.fired = true;
-    rocket.pickedUp = false;
-    rocket.active = false;
-
-      state.shootCooldown = 0;
-    
-    // Скрываем индикатор
-    const indicator = document.getElementById('rocketIndicator');
-    if (indicator) indicator.style.display = 'none';
-    
-    dispatchMessage('🚀 Ракета выпущена!');
-}
-
 function startDash() {
     const p = state.player;
     if (p.isDashing) return;
@@ -184,33 +81,55 @@ function startDash() {
     dispatchMessage('💨 Рывок!');
 }
 
-function spawnEnemy() {
-    const types = CONFIG.ENEMY_TYPES;
-    const type = types[Math.floor(Math.random() * types.length)];
+// ============================================================
+//  СПАВН ВРАГОВ (С УЧЁТОМ СЛОЖНОСТИ)
+// ============================================================
 
+function spawnEnemy() {
+    const diff = state.difficulty || CONFIG.DEFAULT_DIFFICULTY;
+    const diffConfig = CONFIG.DIFFICULTY_LEVELS[diff] || CONFIG.DIFFICULTY_LEVELS[5];
+
+    const type = CONFIG.ENEMY_TYPES[Math.floor(Math.random() * CONFIG.ENEMY_TYPES.length)];
+
+    let x, y;
     const mapWidth = typeof MAP_WIDTH !== 'undefined' ? MAP_WIDTH : 800;
     const mapHeight = typeof MAP_HEIGHT !== 'undefined' ? MAP_HEIGHT : 600;
-    
-    let x, y;
     const side = Math.floor(Math.random() * 4);
     switch (side) {
-        case 0: x = 50 + Math.random() * (mapWidth - 100); y = -30; break;
-        case 1: x = mapWidth + 30; y = 50 + Math.random() * (mapHeight - 100); break;
-        case 2: x = 50 + Math.random() * (mapWidth - 100); y = mapHeight + 30; break;
-        case 3: x = -30; y = 50 + Math.random() * (mapHeight - 100); break;
+        case 0: x = Math.random() * mapWidth; y = -30; break;
+        case 1: x = mapWidth + 30; y = Math.random() * mapHeight; break;
+        case 2: x = Math.random() * mapWidth; y = mapHeight + 30; break;
+        case 3: x = -30; y = Math.random() * mapHeight; break;
     }
 
-    let hp = CONFIG.ENEMY_BASE_HP;
-    let speed = CONFIG.ENEMY_BASE_SPEED + Math.random() * 30;
+    // ⭐ ОДНО ОБЪЯВЛЕНИЕ КАЖДОЙ ПЕРЕМЕННОЙ
+    let hp = CONFIG.ENEMY_BASE_HP * diffConfig.health;
+    let speed = (CONFIG.ENEMY_BASE_SPEED + Math.random() * 30) * diffConfig.speedMultiplier;
     let radius = CONFIG.ENEMY_BASE_RADIUS;
     let color = '#ff4444';
-    let damage = CONFIG.ENEMY_DAMAGE;
+    let damage = CONFIG.ENEMY_DAMAGE * diffConfig.damage;
     let detectionRange = 250;
     let name = 'Враг';
 
-    if (type === 'scout') { color = '#ff8844'; radius = 12; speed *= 1.2; name = 'Разведчик'; }
-    else if (type === 'warrior') { color = '#ff4444'; hp = 2; radius = 16; name = 'Воин'; }
-    else if (type === 'hunter') { color = '#ff00ff'; radius = 11; speed *= 1.5; name = 'Охотник'; }
+    // Настройка под тип врага (БЕЗ ПОВТОРНЫХ let!)
+    if (type === 'scout') { 
+        color = '#ff8844'; 
+        radius = 12; 
+        speed *= 1.2; 
+        name = 'Разведчик'; 
+    }
+    else if (type === 'warrior') { 
+        color = '#ff4444'; 
+        hp *= 2; 
+        radius = 16; 
+        name = 'Воин'; 
+    }
+    else if (type === 'hunter') { 
+        color = '#ff00ff'; 
+        radius = 11; 
+        speed *= 1.5; 
+        name = 'Охотник'; 
+    }
 
     state.enemies.push({
         x, y, radius, hp, maxHp: hp, speed,
@@ -223,4 +142,108 @@ function spawnEnemy() {
         detectionRange: detectionRange,
         wobble: Math.random() * Math.PI * 2
     });
+}
+
+// ============================================================
+//  ПУЛЕМЁТ
+// ============================================================
+
+function fireMachinegun() {
+    const mg = state.strategems.machinegun;
+    if (!mg.pickedUp || mg.fired) return;
+    if (mg.ammo <= 0) {
+        mg.fired = true;
+        mg.pickedUp = false;
+        mg.active = false;
+        document.getElementById('machinegunIndicator').style.display = 'none';
+        dispatchMessage('⚡ Пулемёт опустошён!');
+        return;
+    }
+    if (state.gameOver) return;
+    
+    const p = state.player;
+    const mx = window.mouse.x + camera.x;
+    const my = window.mouse.y + camera.y;
+    const dx = mx - p.x;
+    const dy = my - p.y;
+    const len = Math.sqrt(dx*dx + dy*dy);
+    if (len < 5) return;
+    
+    state.bullets.push({
+        x: p.x + Math.cos(p.angle) * 18,
+        y: p.y + Math.sin(p.angle) * 18,
+        vx: (dx/len) * 550,
+        vy: (dy/len) * 550,
+        radius: 3,
+        damage: CONFIG.STRATEGEMS.machinegun.damage || 15,
+        life: 1.8,
+        trail: [],
+        owner: 'player',
+        color: '#ffdd44',
+        isMachinegun: true
+    });
+    
+    spawnParticles(p.x + Math.cos(p.angle) * 22, p.y + Math.sin(p.angle) * 22, '#ffdd44', 3, 70);
+    spawnParticles(p.x + Math.cos(p.angle) * 22, p.y + Math.sin(p.angle) * 22, '#ffcc44', 2, 50);
+    
+    mg.ammo--;
+    
+    const indicator = document.getElementById('machinegunIndicator');
+    if (indicator) {
+        indicator.textContent = `⚡ Пулемёт [${mg.ammo}]`;
+    }
+    
+    if (mg.ammo <= 0) {
+        mg.fired = true;
+        mg.pickedUp = false;
+        mg.active = false;
+        if (indicator) indicator.style.display = 'none';
+        dispatchMessage('⚡ Пулемёт опустошён!');
+    }
+}
+
+// ============================================================
+//  РАКЕТНИЦА
+// ============================================================
+
+function fireRocket() {
+    const rocket = state.strategems.rocket;
+    if (!rocket.pickedUp || rocket.fired) return;
+    if (state.gameOver) return;
+    
+    const p = state.player;
+    const mx = window.mouse.x + camera.x;
+    const my = window.mouse.y + camera.y;
+    const dx = mx - p.x;
+    const dy = my - p.y;
+    const len = Math.sqrt(dx*dx + dy*dy);
+    if (len < 10) return;
+    
+    state.bullets.push({
+        x: p.x + Math.cos(p.angle) * 20,
+        y: p.y + Math.sin(p.angle) * 20,
+        vx: (dx/len) * 700,
+        vy: (dy/len) * 700,
+        radius: 8,
+        damage: 999,
+        life: 2.5,
+        trail: [],
+        owner: 'player',
+        color: '#ff8800',
+        isRocket: true
+    });
+    
+    spawnParticles(p.x + Math.cos(p.angle) * 25, p.y + Math.sin(p.angle) * 25, '#ff8800', 30, 300);
+    spawnParticles(p.x + Math.cos(p.angle) * 25, p.y + Math.sin(p.angle) * 25, '#ffcc44', 20, 200);
+    
+    rocket.fired = true;
+    rocket.pickedUp = false;
+    rocket.active = false;
+    
+    state.shootCooldown = 0;
+    
+    const indicator = document.getElementById('rocketIndicator');
+    if (indicator) indicator.style.display = 'none';
+    
+    dispatchMessage('🚀 Ракета выпущена!');
 }

@@ -1,6 +1,21 @@
 const CONFIG = {
     WIDTH: 800,
     HEIGHT: 600,
+
+    // === СЛОЖНОСТЬ ===
+DIFFICULTY_LEVELS: {
+    1: { enemies: 5,  speedMultiplier: 0.7, health: 1, damage: 5, label: '🌱 Лёгкий' },
+    2: { enemies: 6,  speedMultiplier: 0.75, health: 1, damage: 6, label: '🌱 Лёгкий' },
+    3: { enemies: 7,  speedMultiplier: 0.8, health: 1, damage: 7, label: '🌿 Средний' },
+    4: { enemies: 8,  speedMultiplier: 0.85, health: 1, damage: 8, label: '🌿 Средний' },
+    5: { enemies: 10, speedMultiplier: 1.0, health: 1, damage: 10, label: '🌿 Средний' },
+    6: { enemies: 12, speedMultiplier: 1.05, health: 1, damage: 11, label: '🔥 Сложный' },
+    7: { enemies: 14, speedMultiplier: 1.1, health: 1, damage: 12, label: '🔥 Сложный' },
+    8: { enemies: 16, speedMultiplier: 1.15, health: 1, damage: 13, label: '🔥 Сложный' },
+    9: { enemies: 18, speedMultiplier: 1.2, health: 1, damage: 14, label: '💀 Хардкор' },
+    10: { enemies: 20, speedMultiplier: 1.3, health: 1, damage: 15, label: '💀 Хардкор' }
+},
+DEFAULT_DIFFICULTY: 5,
     
     // === СТАТЫ ===
     MAX_HEALTH: 5,

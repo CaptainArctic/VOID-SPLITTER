@@ -153,6 +153,31 @@ function updateMenuStats() {
     if (menuTokens) menuTokens.textContent = '0';
 }
 
+function updateDifficultyUI() {
+    const currentDiff = state.difficulty || CONFIG.DEFAULT_DIFFICULTY;
+    const diffConfig = CONFIG.DIFFICULTY_LEVELS[currentDiff];
+    
+    // Обновляем кнопки
+    document.querySelectorAll('.diff-btn').forEach(btn => {
+        const diff = parseInt(btn.dataset.diff);
+        btn.classList.toggle('active', diff === currentDiff);
+    });
+    
+    // Обновляем подпись
+    const label = document.getElementById('diffLabel');
+    if (label && diffConfig) {
+        label.textContent = `${currentDiff} — ${diffConfig.label}`;
+    }
+}
+
+function setDifficulty(diff) {
+    if (diff < 1 || diff > 10) return;
+    state.difficulty = diff;
+    localStorage.setItem('voidSplitterDifficulty', diff);
+    updateDifficultyUI();
+    dispatchMessage(`🎯 Сложность установлена: ${diff} — ${CONFIG.DIFFICULTY_LEVELS[diff].label}`);
+}
+
 function updateStrategemHUD() {
     const slots = state.selectedStrategems || [];
     const allStrats = CONFIG.ALL_STRATEGEMS;
@@ -199,10 +224,15 @@ function startDailyRun() {
     const menu = document.getElementById('menu');
     if (menu) menu.style.display = 'none';
     
-     // Показываем игровой контейнер
+      
+    // ⭐ ПОКАЗЫВАЕМ ИГРОВОЙ КОНТЕЙНЕР
     const container = document.getElementById('gameContainer');
-    if (container) container.style.display = 'block';
-
+    if (container) {
+        container.style.display = 'block';
+        console.log('✅ gameContainer показан');
+    } else {
+        console.error('❌ gameContainer не найден!');
+    }
      updateStrategemHUD();
 
     resetGameState();
@@ -379,6 +409,17 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         console.log('✅ Кнопка "Высадка" привязана');
     }
+
+    // Кнопки сложности
+    document.querySelectorAll('.diff-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const diff = parseInt(this.dataset.diff);
+        setDifficulty(diff);
+    });
+});
+
+// Загружаем сохранённую сложность
+updateDifficultyUI();
     
     // Кнопка подтверждения выбора
     const confirmBtn = document.getElementById('confirmStrategemsBtn');

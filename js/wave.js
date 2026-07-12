@@ -6,8 +6,10 @@ let totalEnemies = 10;  // Значение по умолчанию
 function startLevel() {
     if (state.gameOver) return;
 
-    // Берём из CONFIG, если есть
-    totalEnemies = (typeof CONFIG !== 'undefined' && CONFIG.LEVEL_ENEMIES) ? CONFIG.LEVEL_ENEMIES : 10;
+    const diff = state.difficulty || CONFIG.DEFAULT_DIFFICULTY;
+    const diffConfig = CONFIG.DIFFICULTY_LEVELS[diff] || CONFIG.DIFFICULTY_LEVELS[5];
+    
+    totalEnemies = diffConfig.enemies || CONFIG.LEVEL_ENEMIES;
     enemiesSpawned = 0;
 
     state.enemies = [];
@@ -29,7 +31,7 @@ function startLevel() {
     const hint = document.getElementById('evacuationHint');
     if (hint) hint.style.display = 'none';
 
-    console.log(`🔫 Спавним ${totalEnemies} врагов...`);
+    console.log(`🔫 Спавним ${totalEnemies} врагов (сложность ${diff})...`);
 
     state.spawnTimer = setInterval(() => {
         if (enemiesSpawned >= totalEnemies || state.gameOver) {

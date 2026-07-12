@@ -15,6 +15,7 @@ const state = {
         dashDx: 0,
         dashDy: 0
     },
+    difficulty: parseInt(localStorage.getItem('voidSplitterDifficulty')) || CONFIG.DEFAULT_DIFFICULTY,
     bullets: [],
     enemies: [],
     particles: [],

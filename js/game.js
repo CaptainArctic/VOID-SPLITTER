@@ -73,6 +73,10 @@ if (mg.pickedUp && !mg.fired && mg.ammo > 0 && window.mouse.down) {
     if (mg._shootTimer <= 0) {
         fireMachinegun();
         mg._shootTimer = CONFIG.STRATEGEMS.machinegun.fireRate || 0.07;
+        // ⭐ ЭФФЕКТ ОТДАЧИ (лёгкая тряска камеры)
+        if (typeof shakeCamera === 'function') {
+            shakeCamera(0.5);
+        }
         }
     }
 
@@ -445,18 +449,29 @@ if (napalm.active) {
 
     // ===== ПУЛИ =====
     state.bullets.forEach(b => {
-        b.trail.forEach((t, i) => {
-            const alpha = i / b.trail.length * 0.5;
-            ctx.globalAlpha = alpha;
-            const trailColor = b.color || '#00ccff';
-            ctx.fillStyle = trailColor;
-            ctx.beginPath();
-            ctx.arc(t.x, t.y, b.radius * (i / b.trail.length), 0, Math.PI * 2);
-            ctx.fill();
-        });
-        ctx.globalAlpha = 1;
+    // Хвост (трассер)
+    b.trail.forEach((t, i) => {
+        const alpha = i / b.trail.length * 0.5;
+        ctx.globalAlpha = alpha;
+        // ⭐ ДЛЯ ПУЛЕМЁТА — СВОЙ ЦВЕТ ХВОСТА
+        const trailColor = b.isMachinegun ? '#ffdd44' : (b.color || '#d12b33');
+        ctx.fillStyle = trailColor;
+        ctx.beginPath();
+        ctx.arc(t.x, t.y, b.radius * (i / b.trail.length), 0, Math.PI * 2);
+        ctx.fill();
+    });
+    ctx.globalAlpha = 1;
 
-        const bulletColor = b.color || '#00ccff';
+    // ⭐ ОСНОВНОЙ ЦВЕТ ПУЛИ
+    let bulletColor = b.color || '#00ccff';
+    if (b.isMachinegun) {
+        bulletColor = '#ff446d';  // ← ЯРКО-красный
+    }
+         // ⭐ ЕСЛИ ЭТО ПУЛЕМЁТ — БОЛЬШЕ СВЕЧЕНИЕ
+        const isMg = b.isMachinegun || false;
+        const shadowSize = isMg ? 20 : 10;
+        const radius = b.radius || 4;
+
         const grad = ctx.createRadialGradient(b.x - 2, b.y - 2, 1, b.x, b.y, b.radius);
         grad.addColorStop(0, '#ffffff');
         grad.addColorStop(0.5, bulletColor);
@@ -467,7 +482,7 @@ if (napalm.active) {
         ctx.fill();
 
         ctx.shadowColor = bulletColor;
-        ctx.shadowBlur = 10;
+        ctx.shadowBlur = shadowSize;
         ctx.fill();
         ctx.shadowBlur = 0;
     });
