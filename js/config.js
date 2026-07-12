@@ -2,6 +2,25 @@ const CONFIG = {
     WIDTH: 800,
     HEIGHT: 600,
 
+    // === ПРОГРЕССИЯ ===
+    UPGRADE_COSTS: {
+        health: 50,
+        speed: 40,
+        damage: 60,
+        fireRate: 80,
+        bulletSpeed: 45
+    },
+
+    UPGRADE_MAX_LEVEL: 10,
+
+    UPGRADE_EFFECTS: {
+        health: 1,      // +1 HP за уровень
+        speed: 10,      // +10 скорости за уровень
+        damage: 3,      // +3 урона за уровень
+        fireRate: 0.01, // -0.01 к кулдауну за уровень
+        bulletSpeed: 20 // +20 к скорости пуль за уровень
+    },
+
     // === СЛОЖНОСТЬ ===
 DIFFICULTY_LEVELS: {
     1: { enemies: 5,  speedMultiplier: 0.7, health: 1, damage: 5, label: '🌱 Лёгкий' },

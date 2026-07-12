@@ -8,6 +8,7 @@ function update(dt) {
     if (state.levelComplete) return;
 
     const p = state.player;
+    const stats = getPlayerStats(); // ← Добавить
     const rocket = state.strategems.rocket; // ← ОДНО ОБЪЯВЛЕНИЕ
 
     // === ДВИЖЕНИЕ ===
@@ -22,7 +23,7 @@ function update(dt) {
         dy *= 0.707;
     }
 
-    let speed = CONFIG.PLAYER_SPEED;
+     let speed = stats.speed;
     
     if (p.isDashing) {
         p.dashTimer -= dt;
@@ -61,7 +62,7 @@ function update(dt) {
     if (rocket.pickedUp && !rocket.fired && window.mouse.down) {
          fireRocket();
         if (!rocket.fired) {
-        state.shootCooldown = 999;
+        state.shootCooldown = stats.fireRate;
     }
     }
 

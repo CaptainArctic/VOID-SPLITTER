@@ -41,7 +41,23 @@ const state = {
     enemiesSpawned: 0,
     totalEnemies: CONFIG.LEVEL_ENEMIES,
     // Выбранные стратегемы (загружаем из localStorage)
-    selectedStrategems: []
+    selectedStrategems: [],
+
+        // В state, после остальных полей:
+        progress: {
+        crystals: 0,
+        totalKills: 0,
+        totalRuns: 0,
+        bestScore: 0,
+        bestWave: 0,
+        upgrades: {
+            health: 0,
+            speed: 0,
+            damage: 0,
+            fireRate: 0,
+            bulletSpeed: 0
+        }
+    }
 };
 
 const keys = { w: false, a: false, s: false, d: false, shift: false };

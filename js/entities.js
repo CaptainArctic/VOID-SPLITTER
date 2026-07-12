@@ -26,6 +26,8 @@ function explosionParticles(x, y, color) {
 
 function shootBullet(targetX, targetY) {
     const p = state.player;
+    const stats = getPlayerStats(); // ← ДОБАВИТЬ
+
     const dx = targetX - p.x;
     const dy = targetY - p.y;
     const len = Math.sqrt(dx * dx + dy * dy);
@@ -36,10 +38,10 @@ function shootBullet(targetX, targetY) {
     state.bullets.push({
         x: p.x + Math.cos(p.angle) * 16,
         y: p.y + Math.sin(p.angle) * 16,
-        vx: (dx / len) * CONFIG.BULLET_SPEED,
-        vy: (dy / len) * CONFIG.BULLET_SPEED,
+        vx: (dx / len) * stats.bulletSpeed,
+        vy: (dy / len) * stats.bulletSpeed,
         radius: CONFIG.BULLET_RADIUS,
-        damage: CONFIG.BULLET_DAMAGE,
+        damage: stats.damage,
         life: CONFIG.BULLET_LIFE,
         trail: [],
         owner: 'player'

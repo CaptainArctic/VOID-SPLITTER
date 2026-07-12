@@ -496,3 +496,128 @@ canvas {
     margin-top: 8px;
     min-height: 20px;
 }
+
+/* ===== УЛУЧШЕНИЯ ===== */
+#upgradeScreen {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.95);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 90;
+    padding: 20px;
+    border-radius: 12px;
+}
+
+#upgradeScreen h1 {
+    font-size: 32px;
+    color: #ffcc00;
+    margin-bottom: 5px;
+}
+
+#upgradeScreen .subtitle {
+    color: rgba(255,255,255,0.4);
+    font-size: 14px;
+    margin-bottom: 20px;
+}
+
+.upgrade-resources {
+    color: #ffcc00;
+    font-size: 18px;
+    margin-bottom: 20px;
+}
+
+.upgrade-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+    gap: 15px;
+    max-width: 700px;
+    width: 100%;
+}
+
+.upgrade-item {
+    background: rgba(0,20,50,0.5);
+    border: 1px solid rgba(0,170,255,0.15);
+    border-radius: 12px;
+    padding: 15px;
+    text-align: center;
+    transition: all 0.3s;
+}
+
+.upgrade-item:hover {
+    border-color: rgba(0,170,255,0.4);
+    box-shadow: 0 0 30px rgba(0,170,255,0.05);
+}
+
+.upgrade-icon {
+    font-size: 28px;
+    margin-bottom: 5px;
+}
+
+.upgrade-name {
+    color: #00ccff;
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.upgrade-level {
+    color: rgba(255,255,255,0.3);
+    font-size: 11px;
+    margin-bottom: 5px;
+}
+
+.upgrade-value {
+    color: rgba(255,255,255,0.5);
+    font-size: 11px;
+    margin-bottom: 10px;
+}
+
+.upgrade-btn {
+    background: rgba(0,204,255,0.15);
+    border: 1px solid rgba(0,204,255,0.2);
+    border-radius: 6px;
+    color: #00ccff;
+    font-size: 11px;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: 'Courier New', monospace;
+    width: 100%;
+}
+
+.upgrade-btn:hover {
+    background: rgba(0,204,255,0.25);
+    border-color: #00ccff;
+}
+
+.upgrade-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+#closeUpgradeBtn {
+    margin-top: 20px;
+    padding: 10px 30px;
+    background: rgba(255,255,255,0.1);
+    border: none;
+    border-radius: 6px;
+    color: rgba(255,255,255,0.5);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: 'Courier New', monospace;
+}
+
+#closeUpgradeBtn:hover {
+    background: rgba(255,255,255,0.2);
+}
+
+@media (max-width: 700px) {
+    .upgrade-grid {
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 10px;
+    }
+}

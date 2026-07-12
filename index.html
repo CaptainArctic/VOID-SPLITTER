@@ -133,11 +133,65 @@
             <span>🎫 <span id="menuTokens">0</span></span>
         </div>
         
+        <!-- ⭐ КНОПКИ МЕНЮ -->
+    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
         <button id="startBtn">🚀 ВЫСАДКА НА ПЛАНЕТУ</button>
+        <button id="upgradeBtn">🛠️ УЛУЧШЕНИЯ</button>
+    </div>
         
         <p class="footer">"Помни, боец: смерть — это не поражение, это перезагрузка."</p>
     </div>
     
+    <!-- ===== ЭКРАН УЛУЧШЕНИЙ ===== -->
+<div id="upgradeScreen">
+    <h1>🛠️ УЛУЧШЕНИЯ</h1>
+    <p class="subtitle">Трать кристаллы на улучшение статов</p>
+    
+    <div class="upgrade-resources">
+        💎 <span id="upgradeCrystals">0</span> кристаллов
+    </div>
+    
+    <div class="upgrade-grid">
+        <div class="upgrade-item">
+            <div class="upgrade-icon">❤️</div>
+            <div class="upgrade-name">Здоровье</div>
+            <div class="upgrade-level" id="upgradeLevel_health">0/10</div>
+            <div class="upgrade-value" id="upgradeValue_health">5 → 5</div>
+            <button class="upgrade-btn" data-stat="health">Улучшить (💎<span id="upgradeCost_health">50</span>)</button>
+        </div>
+        <div class="upgrade-item">
+            <div class="upgrade-icon">⚡</div>
+            <div class="upgrade-name">Скорость</div>
+            <div class="upgrade-level" id="upgradeLevel_speed">0/10</div>
+            <div class="upgrade-value" id="upgradeValue_speed">280 → 280</div>
+            <button class="upgrade-btn" data-stat="speed">Улучшить (💎<span id="upgradeCost_speed">40</span>)</button>
+        </div>
+        <div class="upgrade-item">
+            <div class="upgrade-icon">🗡️</div>
+            <div class="upgrade-name">Урон</div>
+            <div class="upgrade-level" id="upgradeLevel_damage">0/10</div>
+            <div class="upgrade-value" id="upgradeValue_damage">50 → 50</div>
+            <button class="upgrade-btn" data-stat="damage">Улучшить (💎<span id="upgradeCost_damage">60</span>)</button>
+        </div>
+        <div class="upgrade-item">
+            <div class="upgrade-icon">🏹</div>
+            <div class="upgrade-name">Скорострельность</div>
+            <div class="upgrade-level" id="upgradeLevel_fireRate">0/10</div>
+            <div class="upgrade-value" id="upgradeValue_fireRate">0.08 → 0.08</div>
+            <button class="upgrade-btn" data-stat="fireRate">Улучшить (💎<span id="upgradeCost_fireRate">80</span>)</button>
+        </div>
+        <div class="upgrade-item">
+            <div class="upgrade-icon">💨</div>
+            <div class="upgrade-name">Скорость пуль</div>
+            <div class="upgrade-level" id="upgradeLevel_bulletSpeed">0/10</div>
+            <div class="upgrade-value" id="upgradeValue_bulletSpeed">600 → 600</div>
+            <button class="upgrade-btn" data-stat="bulletSpeed">Улучшить (💎<span id="upgradeCost_bulletSpeed">45</span>)</button>
+        </div>
+    </div>
+    
+    <button id="closeUpgradeBtn">🔙 НАЗАД В МЕНЮ</button>
+</div>
+
     <!-- ===== ЭКРАН ВЫБОРА СТРАТЕГЕМ ===== -->
     <div id="strategemSelect">
         <h1>🎯 ВЫБОР СТРАТЕГЕМ</h1>

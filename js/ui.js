@@ -220,6 +220,18 @@ function updateStrategemHUD() {
     }
 }
 
+            function openUpgradeScreen() {
+                const screen = document.getElementById('upgradeScreen');
+                if (screen) screen.style.display = 'flex';
+                updateUpgradeUI();
+            }
+
+            function closeUpgradeScreen() {
+                const screen = document.getElementById('upgradeScreen');
+                if (screen) screen.style.display = 'none';
+                showMenu();
+            }
+
 function startDailyRun() {
     const menu = document.getElementById('menu');
     if (menu) menu.style.display = 'none';
@@ -242,8 +254,11 @@ function startDailyRun() {
 
 function resetGameState() {
     const p = state.player;
-    p.health = CONFIG.MAX_HEALTH;
-    p.maxHealth = CONFIG.MAX_HEALTH;
+     const stats = getPlayerStats(); // ← ПОЛУЧАЕМ УЛУЧШЕННЫЕ СТАТЫ
+    
+    // ⭐ ПРИМЕНЯЕМ УЛУЧШЕННОЕ ЗДОРОВЬЕ
+    p.maxHealth = stats.health;
+    p.health = stats.health;
     p.x = 400;
     p.y = 300;
     p.angle = 0;
@@ -256,7 +271,6 @@ function resetGameState() {
     state.enemies = [];
     state.particles = [];
     state.kills = 0;
-    state.crystals = 0;
     state.score = 0;
     state.combo = 1;
     state.comboTimer = 0;
@@ -342,6 +356,10 @@ function evacuate() {
 }
 
 function showResults() {
+    // ⭐ ДОБАВЛЯЕМ КРИСТАЛЛЫ ЗА ЗАБЕГ
+    const diff = state.difficulty || CONFIG.DEFAULT_DIFFICULTY;
+    const earnedCrystals = addRunRewards(state.kills, state.wave, diff);
+
     const results = document.getElementById('results');
     if (results) {
         document.getElementById('resultKills').textContent = state.kills;
@@ -354,6 +372,7 @@ function showResults() {
         clearInterval(state.spawnTimer);
         state.spawnTimer = null;
     }
+    updateHUD();
 }
 
 function closeResults() {
@@ -409,12 +428,40 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         console.log('✅ Кнопка "Высадка" привязана');
     }
+        // Кнопка "Улучшения" в меню
+    const upgradeBtn = document.getElementById('upgradeBtn');
+    if (upgradeBtn) {
+        upgradeBtn.addEventListener('click', openUpgradeScreen);
+        console.log('✅ Кнопка "Улучшения" привязана');
+    }
+
+        // Кнопка "Назад в меню" в экране улучшений
+    const closeUpgradeBtn = document.getElementById('closeUpgradeBtn');
+    if (closeUpgradeBtn) {
+        closeUpgradeBtn.addEventListener('click', closeUpgradeScreen);
+        console.log('✅ Кнопка "Назад" привязана');
+    } else {
+        console.warn('⚠️ Кнопка "closeUpgradeBtn" не найдена');
+    }
 
     // Кнопки сложности
     document.querySelectorAll('.diff-btn').forEach(btn => {
     btn.addEventListener('click', function() {
         const diff = parseInt(this.dataset.diff);
         setDifficulty(diff);
+    });
+});
+
+// Кнопки улучшений
+document.querySelectorAll('.upgrade-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const stat = this.dataset.stat;
+        console.log('🔧 Нажата кнопка улучшения для:', stat);
+        if (typeof upgradeStat === 'function') {
+            upgradeStat(stat);
+        } else {
+            console.error('❌ Функция upgradeStat не найдена!');
+        }
     });
 });
 
